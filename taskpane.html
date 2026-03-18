@@ -336,7 +336,10 @@ function startRecording() {
     $('transcript').value = final + interim;
     updateBtn();
   };
-  recognition.onerror = e => { if (e.error !== 'no-speech') { setStatus('error', e.error); stopRecording(); } };
+  recognition.onerror = e => {
+    setStatus('error', 'Fehler: ' + e.error);
+    stopRecording();
+  };
   recognition.onend = () => { if (isRecording) recognition.start(); };
   isRecording = true;
   $('transcript').value = ''; final = '';
