@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VoiceMail AI</title>
+  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js" type="text/javascript"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      background: #fff;
+      color: #111;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      padding: 14px 16px;
+      border-bottom: 1px solid #e5e5e5;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo { font-size: 14px; font-weight: 600; letter-spacing: -0.2px; }
+    .settings-btn {
+      background: none; border: none;
+      color: #999; cursor: pointer; font-size: 15px;
+    }
+    .settings-btn:hover { color: #111; }
+
+    .content {
+      flex: 1;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .label {
+      font-size: 11px;
+      font-weight: 500;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 6px;
+    }
+    .style-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+    .style-btn {
+      border: 1px solid #e5e5e5;
+      background: #fff;
+      border-radius: 6px;
+      color: #666;
+      cursor: pointer;
+      padding: 7px 4px;
+      text-align: center;
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      transition: all .15s;
+    }
+    .style-btn:hover { border-color: #111; color: #111; }
+    .style-btn.active { background: #111; border-color: #111; color: #fff; }
+
+    .mic-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 0;
+    }
+    .mic-btn {
+      width: 60px; height: 60px;
+      border-radius: 50%;
+      border: 1.5px solid #ddd;
+      background: #fff;
+      cursor: pointer;
+      font-size: 24px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all .2s;
+    }
+    .mic-btn:hover { border-color: #111; }
+    .mic-btn.recording {
+      background: #111;
+      border-color: #111;
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(0,0,0,0.2); }
+      50%       { box-shadow: 0 0 0 10px rgba(0,0,0,0); }
+    }
+    .mic-label { font-size: 11px; color: #999; }
+    .timer { font-size: 11px; color: #999; font-variant-numeric: tabular-nums; min-height: 14px; }
+    .timer.active { color: #111; }
+
+    textarea {
+      width: 100%;
+      border: 1px solid #e5e5e5;
+      border-radius: 6px;
+      padding: 9px 10px;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #111;
+      resize: none;
+      background: #fafafa;
+      transition: border-color .15s;
+    }
+    textarea:focus { outline: none; border-color: #111; background: #fff; }
+    textarea::placeholder { color: #bbb; }
+    #transcript { min-height: 72px; }
+    #resultBox  { min-height: 100px; background: #fff; }
+
+    .generate-btn {
+      width: 100%;
+      padding: 10px;
+      background: #111;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      font-size: 13px;
+      cursor: pointer;
+      transition: opacity .15s;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .generate-btn:hover:not(:disabled) { opacity: 0.8; }
+    .generate-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .spinner {
+      width: 12px; height: 12px;
+      border: 1.5px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .result-section { display: none; }
+    .result-section.visible { display: block; }
+
+    .action-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .action-btn {
+      padding: 8px;
+      border: 1px solid #e5e5e5;
+      background: #fff;
+      border-radius: 6px;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      color: #444;
+      transition: all .15s;
+    }
+    .action-btn:hover { border-color: #111; color: #111; }
+    .action-btn.primary { background: #111; border-color: #111; color: #fff; }
+    .action-btn.primary:hover { opacity: 0.8; }
+
+    .status-bar {
+      padding: 8px 16px;
+      border-top: 1px solid #e5e5e5;
+      font-size: 11px;
+      color: #999;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .dot { width: 5px; height: 5px; border-radius: 50%; background: #ddd; flex-shrink: 0; }
+    .dot.ok    { background: #111; }
+    .dot.error { background: #cc0000; }
+    .dot.warn  { background: #888; }
+
+    .settings-panel { display: none; padding: 16px; flex-direction: column; gap: 12px; }
+    .settings-panel.visible { display: flex; }
+    .settings-title { font-weight: 600; font-size: 13px; display: flex; align-items: center; justify-content: space-between; }
+    .close-btn { background: none; border: none; color: #999; cursor: pointer; font-size: 16px; }
+    .input-label { font-size: 11px; color: #999; margin-bottom: 4px; font-weight: 500; }
+    .api-input {
+      width: 100%;
+      border: 1px solid #e5e5e5;
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-family: monospace;
+      font-size: 11px;
+      color: #111;
+      background: #fafafa;
+    }
+    .api-input:focus { outline: none; border-color: #111; }
+    .save-btn {
+      padding: 9px; background: #111; color: #fff;
+      border: none; border-radius: 6px;
+      font-family: 'Inter', sans-serif; font-weight: 500; font-size: 12px; cursor: pointer;
+    }
+    .save-btn:hover { opacity: 0.8; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">VoiceMail AI</div>
+  <button class="settings-btn" id="settingsToggle">⚙</button>
+</div>
+
+<div class="settings-panel" id="settingsPanel">
+  <div class="settings-title">
+    Einstellungen
+    <button class="close-btn" id="closeSettings">✕</button>
+  </div>
+  <div>
+    <div class="input-label">Anthropic API Key</div>
+    <input type="password" class="api-input" id="apiKeyInput" placeholder="sk-ant-..."/>
+  </div>
+  <div>
+    <div class="input-label">Zusatzanweisungen (optional)</div>
+    <textarea id="customPrompt" style="min-height:64px;background:#fafafa;"
+      placeholder="z.B.: Immer mit 'Mit freundlichen Grüßen' abschließen."></textarea>
+  </div>
+  <button class="save-btn" id="saveSettings">Speichern</button>
+</div>
+
+<div class="content" id="mainContent">
+
+  <div>
+    <div class="label">Stil</div>
+    <div class="style-grid">
+      <button class="style-btn active" data-style="formal">Formal</button>
+      <button class="style-btn" data-style="freundlich">Freundlich</button>
+      <button class="style-btn" data-style="kurz">Kurz</button>
+    </div>
+  </div>
+
+  <div class="mic-area">
+    <button class="mic-btn" id="micBtn">🎙️</button>
+    <span class="mic-label" id="micLabel">Klicken zum Aufnehmen</span>
+    <div class="timer" id="timer"></div>
+  </div>
+
+  <div>
+    <div class="label">Transkript</div>
+    <textarea id="transcript" placeholder="Gesprochener Text erscheint hier – oder direkt eintippen."></textarea>
+  </div>
+
+  <button class="generate-btn" id="generateBtn" disabled>Mit Claude formulieren</button>
+
+  <div class="result-section" id="resultSection">
+    <div class="label">Formulierter Text</div>
+    <textarea id="resultBox"></textarea>
+    <div class="action-row">
+      <button class="action-btn" id="regenerateBtn">↺ Neu formulieren</button>
+      <button class="action-btn primary" id="insertBtn">In E-Mail einfügen</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="status-bar">
+  <div class="dot" id="statusDot"></div>
+  <span id="statusText">Bereit</span>
+</div>
+
+<script>
+let isRecording = false, recognition = null, timerInterval = null, timerSeconds = 0;
+let selectedStyle = 'formal';
+
+const $ = id => document.getElementById(id);
+
+function setStatus(type, msg) {
+  $('statusDot').className = 'dot' + (type ? ' ' + type : '');
+  $('statusText').textContent = msg;
+}
+
+function loadSettings() {
+  $('apiKeyInput').value  = localStorage.getItem('vm_api_key') || '';
+  $('customPrompt').value = localStorage.getItem('vm_custom_prompt') || '';
+}
+$('settingsToggle').onclick = () => {
+  loadSettings();
+  $('settingsPanel').classList.toggle('visible');
+  $('mainContent').style.display = $('settingsPanel').classList.contains('visible') ? 'none' : 'flex';
+};
+$('closeSettings').onclick = () => {
+  $('settingsPanel').classList.remove('visible');
+  $('mainContent').style.display = 'flex';
+};
+$('saveSettings').onclick = () => {
+  localStorage.setItem('vm_api_key', $('apiKeyInput').value.trim());
+  localStorage.setItem('vm_custom_prompt', $('customPrompt').value.trim());
+  $('settingsPanel').classList.remove('visible');
+  $('mainContent').style.display = 'flex';
+  setStatus('ok', 'Gespeichert');
+};
+
+document.querySelectorAll('.style-btn').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedStyle = btn.dataset.style;
+  };
+});
+
+function startTimer() {
+  timerSeconds = 0; $('timer').textContent = '00:00'; $('timer').classList.add('active');
+  timerInterval = setInterval(() => {
+    timerSeconds++;
+    $('timer').textContent = String(Math.floor(timerSeconds/60)).padStart(2,'0') + ':' + String(timerSeconds%60).padStart(2,'0');
+  }, 1000);
+}
+function stopTimer() { clearInterval(timerInterval); $('timer').classList.remove('active'); }
+
+function startRecording() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { setStatus('error', 'Spracherkennung: Chrome/Edge erforderlich'); return; }
+  recognition = new SR();
+  recognition.lang = 'de-DE';
+  recognition.interimResults = true;
+  recognition.continuous = true;
+  let final = '';
+  recognition.onresult = e => {
+    let interim = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) final += e.results[i][0].transcript + ' ';
+      else interim = e.results[i][0].transcript;
+    }
+    $('transcript').value = final + interim;
+    updateBtn();
+  };
+  recognition.onerror = e => { if (e.error !== 'no-speech') { setStatus('error', e.error); stopRecording(); } };
+  recognition.onend = () => { if (isRecording) recognition.start(); };
+  isRecording = true;
+  $('transcript').value = ''; final = '';
+  $('micBtn').classList.add('recording'); $('micBtn').textContent = '⏹️';
+  $('micLabel').textContent = 'Aufnahme läuft...';
+  startTimer(); setStatus('warn', 'Sprich jetzt...');
+  recognition.start();
+}
+
+function stopRecording() {
+  isRecording = false;
+  if (recognition) { recognition.onend = null; recognition.stop(); }
+  $('micBtn').classList.remove('recording'); $('micBtn').textContent = '🎙️';
+  $('micLabel').textContent = 'Klicken zum Aufnehmen';
+  stopTimer(); $('timer').textContent = '';
+  updateBtn();
+  setStatus($('transcript').value.trim() ? 'ok' : '', 'Bereit');
+}
+
+$('micBtn').onclick = () => isRecording ? stopRecording() : startRecording();
+
+function updateBtn() { $('generateBtn').disabled = !$('transcript').value.trim(); }
+$('transcript').oninput = updateBtn;
+
+const styleLabels = {
+  formal: 'formell und geschäftlich, Sie-Form, strukturiert',
+  freundlich: 'freundlich-professionell, wertschätzend, klar',
+  kurz: 'sehr prägnant, auf das Wesentliche reduziert'
+};
+
+async function callClaude() {
+  const key = localStorage.getItem('vm_api_key') || '';
+  if (!key) { setStatus('error', 'API Key fehlt – bitte in ⚙ Einstellungen eintragen'); return null; }
+  const extra = localStorage.getItem('vm_custom_prompt') || '';
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1024,
+      system: `Du bist ein professioneller E-Mail-Assistent für deutsche Geschäftskorrespondenz.
+Formuliere den informell eingesprochenen Text in einen professionellen E-Mail-Text um.
+Stil: ${styleLabels[selectedStyle]}
+Regeln: Nur den Nachrichtentext – keine Anrede, keine Grußformel. Normaler Fließtext, keine Markdown-Formatierung.${extra ? '\nZusatz: ' + extra : ''}`,
+      messages: [{ role: 'user', content: $('transcript').value.trim() }]
+    })
+  });
+  if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e?.error?.message || `HTTP ${res.status}`); }
+  const data = await res.json();
+  return data.content?.[0]?.text || '';
+}
+
+async function runGenerate() {
+  if (!$('transcript').value.trim()) return;
+  $('generateBtn').disabled = true;
+  $('generateBtn').innerHTML = '<div class="spinner"></div> Formuliert...';
+  $('resultSection').classList.remove('visible');
+  setStatus('warn', 'Claude denkt...');
+  try {
+    const result = await callClaude();
+    if (result) { $('resultBox').value = result; $('resultSection').classList.add('visible'); setStatus('ok', 'Fertig'); }
+  } catch(e) {
+    setStatus('error', e.message);
+  } finally {
+    $('generateBtn').disabled = false;
+    $('generateBtn').textContent = 'Mit Claude formulieren';
+    updateBtn();
+  }
+}
+
+$('generateBtn').onclick = runGenerate;
+$('regenerateBtn').onclick = runGenerate;
+
+$('insertBtn').onclick = () => {
+  const text = $('resultBox').value.trim();
+  if (!text) return;
+  if (typeof Office !== 'undefined' && Office.context?.mailbox?.item) {
+    Office.context.mailbox.item.body.setSelectedDataAsync(text, { coercionType: Office.CoercionType.Text }, r => {
+      setStatus(r.status === Office.AsyncResultStatus.Succeeded ? 'ok' : 'error',
+        r.status === Office.AsyncResultStatus.Succeeded ? 'Eingefügt' : r.error.message);
+    });
+  } else {
+    navigator.clipboard.writeText(text).then(() => setStatus('ok', 'In Zwischenablage kopiert'));
+  }
+};
+
+if (typeof Office !== 'undefined') Office.onReady(() => { setStatus('ok', 'Bereit'); loadSettings(); });
+else { setStatus('', 'Testmodus'); loadSettings(); }
+</script>
+</body>
+</html>
