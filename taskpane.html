@@ -223,6 +223,10 @@
     <input type="password" class="api-input" id="apiKeyInput" placeholder="sk-ant-..."/>
   </div>
   <div>
+    <div class="input-label">OpenAI API Key (für Whisper)</div>
+    <input type="password" class="api-input" id="openaiKeyInput" placeholder="sk-..."/>
+  </div>
+  <div>
     <div class="input-label">Zusatzanweisungen (optional)</div>
     <textarea id="customPrompt" style="min-height:64px;background:#fafafa;"
       placeholder="z.B.: Immer mit 'Mit freundlichen Grüßen' abschließen."></textarea>
@@ -271,6 +275,7 @@
 
 <script>
 let selectedStyle = 'formal';
+let mediaRecorder = null, isRecording = false, audioChunks = [];
 
 const $ = id => document.getElementById(id);
 
@@ -280,8 +285,9 @@ function setStatus(type, msg) {
 }
 
 function loadSettings() {
-  $('apiKeyInput').value  = localStorage.getItem('vm_api_key') || '';
-  $('customPrompt').value = localStorage.getItem('vm_custom_prompt') || '';
+  $('apiKeyInput').value   = localStorage.getItem('vm_api_key') || '';
+  $('openaiKeyInput').value = localStorage.getItem('vm_openai_key') || '';
+  $('customPrompt').value  = localStorage.getItem('vm_custom_prompt') || '';
 }
 $('settingsToggle').onclick = () => {
   loadSettings();
@@ -294,6 +300,7 @@ $('closeSettings').onclick = () => {
 };
 $('saveSettings').onclick = () => {
   localStorage.setItem('vm_api_key', $('apiKeyInput').value.trim());
+  localStorage.setItem('vm_openai_key', $('openaiKeyInput').value.trim());
   localStorage.setItem('vm_custom_prompt', $('customPrompt').value.trim());
   $('settingsPanel').classList.remove('visible');
   $('mainContent').style.display = 'flex';
@@ -308,39 +315,62 @@ document.querySelectorAll('.style-btn').forEach(btn => {
   };
 });
 
-$('micBtn').onclick = () => {
-  const url = 'https://willowy-empanada-20d9ee.netlify.app/recorder.html';
+async function startRecording() {
+  let stream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch(e) {
+    setStatus('error', 'Mikrofon verweigert: ' + e.message); return;
+  }
+  audioChunks = [];
+  mediaRecorder = new MediaRecorder(stream);
+  mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+  mediaRecorder.onstop = async () => {
+    stream.getTracks().forEach(t => t.stop());
+    const blob = new Blob(audioChunks, { type: 'audio/webm' });
+    await transcribeWithWhisper(blob);
+  };
+  isRecording = true;
+  mediaRecorder.start();
   $('micBtn').classList.add('recording'); $('micBtn').textContent = '⏹️';
   $('micLabel').textContent = 'Aufnahme läuft...';
   setStatus('warn', 'Sprich jetzt...');
-  Office.context.ui.displayDialogAsync(url, { height: 40, width: 30 }, result => {
-    if (result.status === Office.AsyncResultStatus.Failed) {
-      setStatus('error', 'Dialog Fehler: ' + result.error.message);
-      $('micBtn').classList.remove('recording'); $('micBtn').textContent = '🎙️';
-      $('micLabel').textContent = 'Klicken zum Aufnehmen';
-      return;
-    }
-    const dialog = result.value;
-    dialog.addEventHandler(Office.EventType.DialogMessageReceived, msg => {
-      dialog.close();
-      $('micBtn').classList.remove('recording'); $('micBtn').textContent = '🎙️';
-      $('micLabel').textContent = 'Klicken zum Aufnehmen';
-      try {
-        const data = JSON.parse(msg.message);
-        if (data.type === 'transcript' && data.text) {
-          $('transcript').value = data.text;
-          updateBtn();
-          setStatus('ok', 'Transkript erhalten');
-        }
-      } catch(e) { setStatus('error', 'Fehler beim Empfangen'); }
+}
+
+function stopRecording() {
+  if (!isRecording) return;
+  isRecording = false;
+  mediaRecorder.stop();
+  $('micBtn').classList.remove('recording'); $('micBtn').textContent = '🎙️';
+  $('micLabel').textContent = 'Transkribiere...';
+  setStatus('warn', 'Whisper transkribiert...');
+}
+
+async function transcribeWithWhisper(blob) {
+  const key = localStorage.getItem('vm_openai_key') || '';
+  if (!key) { setStatus('error', 'OpenAI API Key fehlt – bitte in ⚙ eintragen'); $('micLabel').textContent = 'Klicken zum Aufnehmen'; return; }
+  try {
+    const form = new FormData();
+    form.append('file', blob, 'audio.webm');
+    form.append('model', 'whisper-1');
+    form.append('language', 'de');
+    const res = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + key },
+      body: form
     });
-    dialog.addEventHandler(Office.EventType.DialogEventReceived, () => {
-      $('micBtn').classList.remove('recording'); $('micBtn').textContent = '🎙️';
-      $('micLabel').textContent = 'Klicken zum Aufnehmen';
-      setStatus('', 'Bereit');
-    });
-  });
-};
+    if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e?.error?.message || `HTTP ${res.status}`); }
+    const data = await res.json();
+    $('transcript').value = data.text || '';
+    updateBtn();
+    setStatus('ok', 'Transkript fertig');
+  } catch(e) {
+    setStatus('error', 'Whisper Fehler: ' + e.message);
+  }
+  $('micLabel').textContent = 'Klicken zum Aufnehmen';
+}
+
+$('micBtn').onclick = () => isRecording ? stopRecording() : startRecording();
 
 function updateBtn() { $('generateBtn').disabled = !$('transcript').value.trim(); }
 $('transcript').oninput = updateBtn;
