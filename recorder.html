@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Aufnahme</title>
+  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; gap: 16px; background: #fff; color: #111; }
+    .mic-btn { width: 72px; height: 72px; border-radius: 50%; border: 1.5px solid #ddd; background: #fff; cursor: pointer; font-size: 28px; display: flex; align-items: center; justify-content: center; transition: all .2s; }
+    .mic-btn.recording { background: #111; border-color: #111; animation: pulse 1.4s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(0,0,0,.2)}50%{box-shadow:0 0 0 10px rgba(0,0,0,0)} }
+    .label { font-size: 13px; color: #999; }
+    .timer { font-size: 12px; color: #999; font-variant-numeric: tabular-nums; min-height: 16px; }
+    .done-btn { padding: 10px 24px; background: #111; color: #fff; border: none; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; display: none; }
+    .done-btn:hover { opacity: .8; }
+    .status { font-size: 11px; color: #cc0000; min-height: 16px; }
+  </style>
+</head>
+<body>
+  <button class="mic-btn" id="micBtn">🎙️</button>
+  <div class="label" id="label">Klicken zum Aufnehmen</div>
+  <div class="timer" id="timer"></div>
+  <div class="status" id="status"></div>
+  <button class="done-btn" id="doneBtn">✓ Übernehmen</button>
+
+<script>
+let isRecording = false, recognition = null, timerInterval = null, timerSeconds = 0;
+let finalText = '';
+
+const $ = id => document.getElementById(id);
+
+function startTimer() {
+  timerSeconds = 0; $('timer').textContent = '00:00';
+  timerInterval = setInterval(() => {
+    timerSeconds++;
+    $('timer').textContent = String(Math.floor(timerSeconds/60)).padStart(2,'0') + ':' + String(timerSeconds%60).padStart(2,'0');
+  }, 1000);
+}
+function stopTimer() { clearInterval(timerInterval); }
+
+async function startRecording() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { $('status').textContent = 'Spracherkennung nicht verfügbar'; return; }
+  try {
+    await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch(e) {
+    $('status').textContent = 'Mikrofon verweigert: ' + e.message; return;
+  }
+  recognition = new SR();
+  recognition.lang = 'de-DE';
+  recognition.interimResults = true;
+  recognition.continuous = true;
+  finalText = '';
+  recognition.onresult = e => {
+    let interim = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) finalText += e.results[i][0].transcript + ' ';
+      else interim = e.results[i][0].transcript;
+    }
+    $('label').textContent = (finalText + interim).trim() || 'Sprich jetzt...';
+  };
+  recognition.onerror = e => { if (e.error !== 'no-speech') { $('status').textContent = 'Fehler: ' + e.error; stopRecording(); } };
+  recognition.onend = () => { if (isRecording) recognition.start(); };
+  isRecording = true;
+  $('micBtn').classList.add('recording'); $('micBtn').textContent = '⏹️';
+  startTimer();
+  recognition.start();
+}
+
+function stopRecording() {
+  isRecording = false;
+  if (recognition) { recognition.onend = null; recognition.stop(); }
+  $('micBtn').classList.remove('recording'); $('micBtn').textContent = '🎙️';
+  $('label').textContent = finalText.trim() || 'Nichts aufgenommen';
+  stopTimer();
+  if (finalText.trim()) $('doneBtn').style.display = 'block';
+}
+
+$('micBtn').onclick = () => isRecording ? stopRecording() : startRecording();
+
+$('doneBtn').onclick = () => {
+  Office.context.ui.messageParent(JSON.stringify({ type: 'transcript', text: finalText.trim() }));
+};
+
+Office.onReady(() => {});
+</script>
+</body>
+</html>
