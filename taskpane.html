@@ -367,7 +367,7 @@ async function callOpenAI() {
         { role: 'system', content: `Du bist ein professioneller E-Mail-Assistent für deutsche Geschäftskorrespondenz.
 Formuliere den informell eingesprochenen Text in einen professionellen E-Mail-Text um.
 Stil: ${styleLabels[selectedStyle]}
-Regeln: Nur den Nachrichtentext – keine Anrede, keine Grußformel. Normaler Fließtext, keine Markdown-Formatierung.${extra ? '\nZusatz: ' + extra : ''}` },
+Regeln: Nur den Nachrichtentext – keine Anrede, keine Grußformel. Trenne Absätze mit einer Leerzeile. Kein Markdown, keine Aufzählungszeichen.${extra ? '\nZusatz: ' + extra : ''}` },
         { role: 'user', content: $('transcript').value.trim() }
       ]
     })
@@ -377,15 +377,37 @@ Regeln: Nur den Nachrichtentext – keine Anrede, keine Grußformel. Normaler Fl
   return data.choices?.[0]?.message?.content || '';
 }
 
+function textToHtml(text) {
+  return text.trim().split(/\n\n+/).map(p =>
+    '<p>' + p.replace(/\n/g, '<br>') + '</p>'
+  ).join('');
+}
+
+function insertIntoMail(text) {
+  const html = textToHtml(text);
+  if (typeof Office !== 'undefined' && Office.context?.mailbox?.item) {
+    Office.context.mailbox.item.body.setAsync(html, { coercionType: Office.CoercionType.Html }, r => {
+      setStatus(r.status === Office.AsyncResultStatus.Succeeded ? 'ok' : 'error',
+        r.status === Office.AsyncResultStatus.Succeeded ? 'Eingefügt' : r.error.message);
+    });
+  } else {
+    navigator.clipboard.writeText(text).then(() => setStatus('ok', 'In Zwischenablage kopiert'));
+  }
+}
+
 async function runGenerate() {
   if (!$('transcript').value.trim()) return;
   $('generateBtn').disabled = true;
   $('generateBtn').innerHTML = '<div class="spinner"></div> Formuliert...';
   $('resultSection').classList.remove('visible');
-  setStatus('warn', 'Claude denkt...');
+  setStatus('warn', 'Formuliert...');
   try {
     const result = await callOpenAI();
-    if (result) { $('resultBox').value = result; $('resultSection').classList.add('visible'); setStatus('ok', 'Fertig'); }
+    if (result) {
+      $('resultBox').value = result;
+      $('resultSection').classList.add('visible');
+      insertIntoMail(result);
+    }
   } catch(e) {
     setStatus('error', e.message);
   } finally {
@@ -397,19 +419,7 @@ async function runGenerate() {
 
 $('generateBtn').onclick = runGenerate;
 $('regenerateBtn').onclick = runGenerate;
-
-$('insertBtn').onclick = () => {
-  const text = $('resultBox').value.trim();
-  if (!text) return;
-  if (typeof Office !== 'undefined' && Office.context?.mailbox?.item) {
-    Office.context.mailbox.item.body.setSelectedDataAsync(text, { coercionType: Office.CoercionType.Text }, r => {
-      setStatus(r.status === Office.AsyncResultStatus.Succeeded ? 'ok' : 'error',
-        r.status === Office.AsyncResultStatus.Succeeded ? 'Eingefügt' : r.error.message);
-    });
-  } else {
-    navigator.clipboard.writeText(text).then(() => setStatus('ok', 'In Zwischenablage kopiert'));
-  }
-};
+$('insertBtn').onclick = () => insertIntoMail($('resultBox').value.trim());
 
 if (typeof Office !== 'undefined') Office.onReady(() => { setStatus('ok', 'Bereit'); loadSettings(); });
 else { setStatus('', 'Testmodus'); loadSettings(); }
