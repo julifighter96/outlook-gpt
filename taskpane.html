@@ -336,11 +336,12 @@ function startRecording() {
     $('transcript').value = final + interim;
     updateBtn();
   };
-  recognition.onerror = e => {
-    setStatus('error', 'Fehler: ' + e.error);
-    stopRecording();
+  recognition.onstart = () => setStatus('ok', 'Mikrofon aktiv');
+  recognition.onerror = e => { setStatus('error', 'Fehler: ' + e.error); stopRecording(); };
+  recognition.onend = () => {
+    setStatus('warn', 'onend – isRecording=' + isRecording);
+    if (isRecording) recognition.start();
   };
-  recognition.onend = () => { if (isRecording) recognition.start(); };
   isRecording = true;
   $('transcript').value = ''; final = '';
   $('micBtn').classList.add('recording'); $('micBtn').textContent = '⏹️';
