@@ -7,84 +7,97 @@
   <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; gap: 16px; background: #fff; color: #111; }
-    .mic-btn { width: 72px; height: 72px; border-radius: 50%; border: 1.5px solid #ddd; background: #fff; cursor: pointer; font-size: 28px; display: flex; align-items: center; justify-content: center; transition: all .2s; }
-    .mic-btn.recording { background: #111; border-color: #111; animation: pulse 1.4s ease-in-out infinite; }
-    @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(0,0,0,.2)}50%{box-shadow:0 0 0 10px rgba(0,0,0,0)} }
-    .label { font-size: 13px; color: #999; }
-    .timer { font-size: 12px; color: #999; font-variant-numeric: tabular-nums; min-height: 16px; }
-    .done-btn { padding: 10px 24px; background: #111; color: #fff; border: none; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; display: none; }
-    .done-btn:hover { opacity: .8; }
-    .status { font-size: 11px; color: #cc0000; min-height: 16px; }
+    body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; gap: 14px; background: #fff; color: #111; }
+    .mic-btn { width: 72px; height: 72px; border-radius: 50%; border: 1.5px solid #111; background: #111; cursor: pointer; font-size: 28px; display: flex; align-items: center; justify-content: center; animation: pulse 1.4s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(0,0,0,.25)}50%{box-shadow:0 0 0 12px rgba(0,0,0,0)} }
+    .mic-btn.idle { background: #fff; border-color: #ddd; animation: none; }
+    .label { font-size: 13px; color: #555; }
+    .timer { font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: 1px; }
+    .stop-btn { padding: 10px 28px; background: #111; color: #fff; border: none; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; }
+    .stop-btn:hover { opacity: .8; }
+    .status { font-size: 11px; color: #999; min-height: 16px; }
+    .status.error { color: #cc0000; }
   </style>
 </head>
 <body>
-  <button class="mic-btn" id="micBtn">🎙️</button>
-  <div class="label" id="label">Klicken zum Aufnehmen</div>
-  <div class="timer" id="timer"></div>
+  <div class="mic-btn" id="micIcon">🎙️</div>
+  <div class="timer" id="timer">00:00</div>
+  <div class="label" id="label">Aufnahme läuft...</div>
+  <button class="stop-btn" id="stopBtn">⏹ Stoppen & Senden</button>
   <div class="status" id="status"></div>
-  <button class="done-btn" id="doneBtn">✓ Übernehmen</button>
 
 <script>
-let isRecording = false, recognition = null, timerInterval = null, timerSeconds = 0;
-let finalText = '';
+let mediaRecorder = null, audioChunks = [], timerInterval = null, timerSeconds = 0;
 
-const $ = id => document.getElementById(id);
-
-function startTimer() {
-  timerSeconds = 0; $('timer').textContent = '00:00';
-  timerInterval = setInterval(() => {
-    timerSeconds++;
-    $('timer').textContent = String(Math.floor(timerSeconds/60)).padStart(2,'0') + ':' + String(timerSeconds%60).padStart(2,'0');
-  }, 1000);
+function tick() {
+  timerSeconds++;
+  document.getElementById('timer').textContent =
+    String(Math.floor(timerSeconds/60)).padStart(2,'0') + ':' + String(timerSeconds%60).padStart(2,'0');
 }
-function stopTimer() { clearInterval(timerInterval); }
+
+function setStatus(msg, isError) {
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.className = 'status' + (isError ? ' error' : '');
+}
+
+async function transcribe(blob) {
+  const key = decodeURIComponent(window.location.hash.slice(1));
+  if (!key) { setStatus('Kein OpenAI Key übergeben', true); return; }
+  setStatus('Whisper transkribiert...');
+  document.getElementById('label').textContent = 'Bitte warten...';
+  document.getElementById('micIcon').className = 'mic-btn idle';
+  document.getElementById('micIcon').textContent = '⏳';
+  try {
+    const form = new FormData();
+    form.append('file', blob, 'audio.webm');
+    form.append('model', 'whisper-1');
+    form.append('language', 'de');
+    const res = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + key },
+      body: form
+    });
+    if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e?.error?.message || `HTTP ${res.status}`); }
+    const data = await res.json();
+    Office.context.ui.messageParent(JSON.stringify({ type: 'transcript', text: data.text || '' }));
+  } catch(e) {
+    setStatus('Fehler: ' + e.message, true);
+    document.getElementById('label').textContent = 'Bitte Fenster schließen';
+  }
+}
 
 async function startRecording() {
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) { $('status').textContent = 'Spracherkennung nicht verfügbar'; return; }
+  let stream;
   try {
-    await navigator.mediaDevices.getUserMedia({ audio: true });
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
   } catch(e) {
-    $('status').textContent = 'Mikrofon verweigert: ' + e.message; return;
+    setStatus('Mikrofon verweigert: ' + e.message, true);
+    document.getElementById('label').textContent = 'Bitte Fenster schließen';
+    document.getElementById('stopBtn').style.display = 'none';
+    return;
   }
-  recognition = new SR();
-  recognition.lang = 'de-DE';
-  recognition.interimResults = true;
-  recognition.continuous = true;
-  finalText = '';
-  recognition.onresult = e => {
-    let interim = '';
-    for (let i = e.resultIndex; i < e.results.length; i++) {
-      if (e.results[i].isFinal) finalText += e.results[i][0].transcript + ' ';
-      else interim = e.results[i][0].transcript;
-    }
-    $('label').textContent = (finalText + interim).trim() || 'Sprich jetzt...';
+  audioChunks = [];
+  mediaRecorder = new MediaRecorder(stream);
+  mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+  mediaRecorder.onstop = async () => {
+    stream.getTracks().forEach(t => t.stop());
+    clearInterval(timerInterval);
+    const blob = new Blob(audioChunks, { type: 'audio/webm' });
+    await transcribe(blob);
   };
-  recognition.onerror = e => { if (e.error !== 'no-speech') { $('status').textContent = 'Fehler: ' + e.error; stopRecording(); } };
-  recognition.onend = () => { if (isRecording) recognition.start(); };
-  isRecording = true;
-  $('micBtn').classList.add('recording'); $('micBtn').textContent = '⏹️';
-  startTimer();
-  recognition.start();
+  mediaRecorder.start();
+  timerInterval = setInterval(tick, 1000);
 }
 
-function stopRecording() {
-  isRecording = false;
-  if (recognition) { recognition.onend = null; recognition.stop(); }
-  $('micBtn').classList.remove('recording'); $('micBtn').textContent = '🎙️';
-  $('label').textContent = finalText.trim() || 'Nichts aufgenommen';
-  stopTimer();
-  if (finalText.trim()) $('doneBtn').style.display = 'block';
-}
-
-$('micBtn').onclick = () => isRecording ? stopRecording() : startRecording();
-
-$('doneBtn').onclick = () => {
-  Office.context.ui.messageParent(JSON.stringify({ type: 'transcript', text: finalText.trim() }));
+document.getElementById('stopBtn').onclick = () => {
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    document.getElementById('stopBtn').disabled = true;
+    mediaRecorder.stop();
+  }
 };
 
-Office.onReady(() => {});
+Office.onReady(() => { startRecording(); });
 </script>
 </body>
 </html>

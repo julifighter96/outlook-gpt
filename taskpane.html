@@ -275,7 +275,6 @@
 
 <script>
 let selectedStyle = 'formal';
-let mediaRecorder = null, isRecording = false, audioChunks = [];
 
 const $ = id => document.getElementById(id);
 
@@ -315,62 +314,41 @@ document.querySelectorAll('.style-btn').forEach(btn => {
   };
 });
 
-async function startRecording() {
-  let stream;
-  try {
-    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-  } catch(e) {
-    setStatus('error', 'Mikrofon verweigert: ' + e.message); return;
-  }
-  audioChunks = [];
-  mediaRecorder = new MediaRecorder(stream);
-  mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
-  mediaRecorder.onstop = async () => {
-    stream.getTracks().forEach(t => t.stop());
-    const blob = new Blob(audioChunks, { type: 'audio/webm' });
-    await transcribeWithWhisper(blob);
-  };
-  isRecording = true;
-  mediaRecorder.start();
-  $('micBtn').classList.add('recording'); $('micBtn').textContent = '⏹️';
-  $('micLabel').textContent = 'Aufnahme läuft...';
-  setStatus('warn', 'Sprich jetzt...');
-}
-
-function stopRecording() {
-  if (!isRecording) return;
-  isRecording = false;
-  mediaRecorder.stop();
-  $('micBtn').classList.remove('recording'); $('micBtn').textContent = '🎙️';
-  $('micLabel').textContent = 'Transkribiere...';
-  setStatus('warn', 'Whisper transkribiert...');
-}
-
-async function transcribeWithWhisper(blob) {
+$('micBtn').onclick = () => {
   const key = localStorage.getItem('vm_openai_key') || '';
-  if (!key) { setStatus('error', 'OpenAI API Key fehlt – bitte in ⚙ eintragen'); $('micLabel').textContent = 'Klicken zum Aufnehmen'; return; }
-  try {
-    const form = new FormData();
-    form.append('file', blob, 'audio.webm');
-    form.append('model', 'whisper-1');
-    form.append('language', 'de');
-    const res = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-      method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + key },
-      body: form
+  if (!key) { setStatus('error', 'OpenAI API Key fehlt – bitte in ⚙ eintragen'); return; }
+  const url = 'https://willowy-empanada-20d9ee.netlify.app/recorder.html#' + encodeURIComponent(key);
+  $('micBtn').classList.add('recording'); $('micBtn').textContent = '⏳';
+  $('micLabel').textContent = 'Aufnahme läuft...';
+  setStatus('warn', 'Sprich im Popup-Fenster...');
+  Office.context.ui.displayDialogAsync(url, { height: 35, width: 25 }, result => {
+    if (result.status === Office.AsyncResultStatus.Failed) {
+      setStatus('error', 'Fehler: ' + result.error.message);
+      $('micBtn').classList.remove('recording'); $('micBtn').textContent = '🎙️';
+      $('micLabel').textContent = 'Klicken zum Aufnehmen';
+      return;
+    }
+    const dialog = result.value;
+    dialog.addEventHandler(Office.EventType.DialogMessageReceived, msg => {
+      dialog.close();
+      $('micBtn').classList.remove('recording'); $('micBtn').textContent = '🎙️';
+      $('micLabel').textContent = 'Klicken zum Aufnehmen';
+      try {
+        const data = JSON.parse(msg.message);
+        if (data.type === 'transcript' && data.text) {
+          $('transcript').value = data.text;
+          updateBtn();
+          setStatus('ok', 'Transkript fertig');
+        }
+      } catch(e) { setStatus('error', 'Fehler beim Empfangen'); }
     });
-    if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e?.error?.message || `HTTP ${res.status}`); }
-    const data = await res.json();
-    $('transcript').value = data.text || '';
-    updateBtn();
-    setStatus('ok', 'Transkript fertig');
-  } catch(e) {
-    setStatus('error', 'Whisper Fehler: ' + e.message);
-  }
-  $('micLabel').textContent = 'Klicken zum Aufnehmen';
-}
-
-$('micBtn').onclick = () => isRecording ? stopRecording() : startRecording();
+    dialog.addEventHandler(Office.EventType.DialogEventReceived, () => {
+      $('micBtn').classList.remove('recording'); $('micBtn').textContent = '🎙️';
+      $('micLabel').textContent = 'Klicken zum Aufnehmen';
+      setStatus('', 'Bereit');
+    });
+  });
+};
 
 function updateBtn() { $('generateBtn').disabled = !$('transcript').value.trim(); }
 $('transcript').oninput = updateBtn;
