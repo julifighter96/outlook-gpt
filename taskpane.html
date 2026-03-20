@@ -182,6 +182,52 @@
     .dot.error { background: #cc0000; }
     .dot.warn  { background: #888; }
 
+    .read-mail-btn {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px dashed #ccc;
+      background: #fafafa;
+      border-radius: 6px;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      color: #666;
+      cursor: pointer;
+      transition: all .15s;
+      text-align: center;
+    }
+    .read-mail-btn:hover { border-color: #111; color: #111; background: #fff; }
+    .read-mail-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .mail-preview {
+      margin-top: 6px;
+      border: 1px solid #e5e5e5;
+      border-radius: 6px;
+      background: #f7f7f7;
+      padding: 8px 10px;
+      position: relative;
+    }
+    .mail-preview-text {
+      font-size: 11px;
+      color: #555;
+      line-height: 1.5;
+      max-height: 72px;
+      overflow: hidden;
+      white-space: pre-wrap;
+      mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+    }
+    .clear-mail-btn {
+      margin-top: 6px;
+      background: none;
+      border: none;
+      font-size: 11px;
+      color: #999;
+      cursor: pointer;
+      padding: 0;
+    }
+    .clear-mail-btn:hover { color: #111; }
+
     .settings-panel { display: none; padding: 16px; flex-direction: column; gap: 12px; }
     .settings-panel.visible { display: flex; }
     .settings-title { font-weight: 600; font-size: 13px; display: flex; align-items: center; justify-content: space-between; }
@@ -241,6 +287,15 @@
     </div>
   </div>
 
+  <div>
+    <div class="label">Antwort auf Mail</div>
+    <button class="read-mail-btn" id="readMailBtn">↓ Aktuelle Mail einlesen</button>
+    <div class="mail-preview" id="mailPreview" style="display:none;">
+      <div class="mail-preview-text" id="mailPreviewText"></div>
+      <button class="clear-mail-btn" id="clearMailBtn">✕ Entfernen</button>
+    </div>
+  </div>
+
   <div class="mic-area">
     <button class="mic-btn" id="micBtn">🎙️</button>
     <span class="mic-label" id="micLabel">Klicken zum Aufnehmen</span>
@@ -271,6 +326,7 @@
 
 <script>
 let selectedStyle = 'formal';
+let originalMailText = '';
 
 const $ = id => document.getElementById(id);
 
@@ -307,6 +363,37 @@ document.querySelectorAll('.style-btn').forEach(btn => {
     selectedStyle = btn.dataset.style;
   };
 });
+
+$('readMailBtn').onclick = () => {
+  if (typeof Office === 'undefined' || !Office.context?.mailbox?.item) {
+    setStatus('error', 'Office API nicht verfügbar');
+    return;
+  }
+  $('readMailBtn').disabled = true;
+  $('readMailBtn').textContent = '⏳ Wird eingelesen...';
+  Office.context.mailbox.item.body.getAsync(Office.CoercionType.Text, result => {
+    $('readMailBtn').disabled = false;
+    $('readMailBtn').textContent = '↓ Aktuelle Mail einlesen';
+    if (result.status === Office.AsyncResultStatus.Failed) {
+      setStatus('error', 'Fehler: ' + result.error.message);
+      return;
+    }
+    const text = result.value.trim();
+    if (!text) { setStatus('warn', 'Mail ist leer'); return; }
+    // Strip excessive quoted history – keep first ~2000 chars
+    originalMailText = text.slice(0, 2000);
+    $('mailPreviewText').textContent = originalMailText;
+    $('mailPreview').style.display = 'block';
+    setStatus('ok', 'Mail eingelesen');
+  });
+};
+
+$('clearMailBtn').onclick = () => {
+  originalMailText = '';
+  $('mailPreview').style.display = 'none';
+  $('mailPreviewText').textContent = '';
+  setStatus('', 'Bereit');
+};
 
 $('micBtn').onclick = () => {
   const key = localStorage.getItem('vm_openai_key') || '';
@@ -365,9 +452,11 @@ async function callOpenAI() {
       max_tokens: 1024,
       messages: [
         { role: 'system', content: `Du bist ein professioneller E-Mail-Assistent für deutsche Geschäftskorrespondenz.
-Formuliere den informell eingesprochenen Text in einen professionellen E-Mail-Text um.
+${originalMailText ? 'Du hilfst eine Antwort auf eine empfangene E-Mail zu formulieren. Beziehe dich inhaltlich auf die ursprüngliche Mail.' : 'Formuliere den informell eingesprochenen Text in einen professionellen E-Mail-Text um.'}
 Stil: ${styleLabels[selectedStyle]}
 Regeln: Nur den Nachrichtentext – keine Anrede, keine Grußformel. Trenne Absätze mit einer Leerzeile. Kein Markdown, keine Aufzählungszeichen.${extra ? '\nZusatz: ' + extra : ''}` },
+        ...(originalMailText ? [{ role: 'user', content: `Ursprüngliche E-Mail:\n${originalMailText}` },
+          { role: 'assistant', content: 'Ich habe die ursprüngliche E-Mail gelesen und werde eine passende Antwort formulieren.' }] : []),
         { role: 'user', content: $('transcript').value.trim() }
       ]
     })
