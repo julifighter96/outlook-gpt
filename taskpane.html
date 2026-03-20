@@ -689,7 +689,7 @@ async function runSuggest() {
     if (result) {
       $('resultBox').value = result;
       $('resultSection1').classList.add('visible');
-      setStatus('ok', 'Fertig');
+      insertIntoMail(result);
     }
   } catch(e) {
     setStatus('error', e.message);
@@ -716,7 +716,7 @@ async function runGenerate() {
     if (result) {
       $('resultBox2').value = result;
       $('resultSection2').classList.add('visible');
-      setStatus('ok', 'Fertig');
+      insertIntoMail(result);
     }
   } catch(e) {
     setStatus('error', e.message);
