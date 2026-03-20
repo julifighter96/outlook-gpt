@@ -21,25 +21,46 @@
     }
 
     .header {
-      padding: 14px 16px;
+      padding: 12px 16px;
       border-bottom: 1px solid #e5e5e5;
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
     .logo { font-size: 14px; font-weight: 600; letter-spacing: -0.2px; }
-    .settings-btn {
-      background: none; border: none;
-      color: #999; cursor: pointer; font-size: 15px;
-    }
+    .settings-btn { background: none; border: none; color: #999; cursor: pointer; font-size: 15px; }
     .settings-btn:hover { color: #111; }
+
+    /* Tabs */
+    .tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-bottom: 1px solid #e5e5e5;
+    }
+    .tab-btn {
+      padding: 10px;
+      background: none;
+      border: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      color: #999;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all .15s;
+    }
+    .tab-btn.active { color: #111; border-bottom-color: #111; }
+    .tab-btn:hover:not(.active) { color: #555; }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: flex; flex-direction: column; }
 
     .content {
       flex: 1;
-      padding: 16px;
+      padding: 14px 16px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
     }
 
     .label {
@@ -50,6 +71,67 @@
       letter-spacing: 0.8px;
       margin-bottom: 6px;
     }
+
+    /* Mail card */
+    .mail-card {
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .mail-card-header {
+      background: #f7f7f7;
+      padding: 9px 12px;
+      border-bottom: 1px solid #e5e5e5;
+    }
+    .mail-from {
+      font-size: 12px;
+      font-weight: 600;
+      color: #111;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .mail-subject {
+      font-size: 11px;
+      color: #666;
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .mail-body-preview {
+      padding: 9px 12px;
+      font-size: 11px;
+      color: #777;
+      line-height: 1.55;
+      max-height: 72px;
+      overflow: hidden;
+      white-space: pre-wrap;
+      mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+    }
+    .mail-empty {
+      padding: 18px 12px;
+      text-align: center;
+      color: #bbb;
+      font-size: 12px;
+    }
+    .reload-btn {
+      width: 100%;
+      padding: 7px;
+      border: none;
+      border-top: 1px solid #e5e5e5;
+      background: #fafafa;
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      color: #999;
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .reload-btn:hover { background: #f0f0f0; color: #111; }
+    .reload-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Style */
     .style-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -71,37 +153,7 @@
     .style-btn:hover { border-color: #111; color: #111; }
     .style-btn.active { background: #111; border-color: #111; color: #fff; }
 
-    .mic-area {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 0;
-    }
-    .mic-btn {
-      width: 60px; height: 60px;
-      border-radius: 50%;
-      border: 1.5px solid #ddd;
-      background: #fff;
-      cursor: pointer;
-      font-size: 24px;
-      display: flex; align-items: center; justify-content: center;
-      transition: all .2s;
-    }
-    .mic-btn:hover { border-color: #111; }
-    .mic-btn.recording {
-      background: #111;
-      border-color: #111;
-      animation: pulse 1.4s ease-in-out infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(0,0,0,0.2); }
-      50%       { box-shadow: 0 0 0 10px rgba(0,0,0,0); }
-    }
-    .mic-label { font-size: 11px; color: #999; }
-    .timer { font-size: 11px; color: #999; font-variant-numeric: tabular-nums; min-height: 14px; }
-    .timer.active { color: #111; }
-
+    /* Textareas */
     textarea {
       width: 100%;
       border: 1px solid #e5e5e5;
@@ -117,25 +169,63 @@
     }
     textarea:focus { outline: none; border-color: #111; background: #fff; }
     textarea::placeholder { color: #bbb; }
-    #transcript { min-height: 72px; }
-    #resultBox  { min-height: 100px; background: #fff; }
+    #hintsBox    { min-height: 52px; }
+    #transcript  { min-height: 72px; }
+    #resultBox   { min-height: 110px; background: #fff; }
+    #resultBox2  { min-height: 110px; background: #fff; }
 
-    .generate-btn {
+    /* Mic */
+    .mic-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 0;
+    }
+    .mic-btn {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      border: 1.5px solid #ddd;
+      background: #fff;
+      cursor: pointer;
+      font-size: 22px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all .2s;
+    }
+    .mic-btn:hover { border-color: #111; }
+    .mic-btn.recording {
+      background: #111; border-color: #111;
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+    .mic-btn.sm {
+      width: 34px; height: 34px;
+      font-size: 15px;
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(0,0,0,0.2); }
+      50%       { box-shadow: 0 0 0 8px rgba(0,0,0,0); }
+    }
+    .mic-label { font-size: 11px; color: #999; }
+    .mic-row { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+
+    /* Main buttons */
+    .main-btn {
       width: 100%;
-      padding: 10px;
+      padding: 11px;
       background: #111;
       color: #fff;
       border: none;
       border-radius: 6px;
       font-family: 'Inter', sans-serif;
-      font-weight: 500;
+      font-weight: 600;
       font-size: 13px;
       cursor: pointer;
       transition: opacity .15s;
       display: flex; align-items: center; justify-content: center; gap: 6px;
     }
-    .generate-btn:hover:not(:disabled) { opacity: 0.8; }
-    .generate-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .main-btn:hover:not(:disabled) { opacity: 0.8; }
+    .main-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
     .spinner {
       width: 12px; height: 12px;
       border: 1.5px solid rgba(255,255,255,0.4);
@@ -170,6 +260,7 @@
     .action-btn.primary { background: #111; border-color: #111; color: #fff; }
     .action-btn.primary:hover { opacity: 0.8; }
 
+    /* Status */
     .status-bar {
       padding: 8px 16px;
       border-top: 1px solid #e5e5e5;
@@ -180,54 +271,9 @@
     .dot { width: 5px; height: 5px; border-radius: 50%; background: #ddd; flex-shrink: 0; }
     .dot.ok    { background: #111; }
     .dot.error { background: #cc0000; }
-    .dot.warn  { background: #888; }
+    .dot.warn  { background: #f59e0b; }
 
-    .read-mail-btn {
-      width: 100%;
-      padding: 8px 10px;
-      border: 1px dashed #ccc;
-      background: #fafafa;
-      border-radius: 6px;
-      font-family: 'Inter', sans-serif;
-      font-size: 12px;
-      font-weight: 500;
-      color: #666;
-      cursor: pointer;
-      transition: all .15s;
-      text-align: center;
-    }
-    .read-mail-btn:hover { border-color: #111; color: #111; background: #fff; }
-    .read-mail-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-    .mail-preview {
-      margin-top: 6px;
-      border: 1px solid #e5e5e5;
-      border-radius: 6px;
-      background: #f7f7f7;
-      padding: 8px 10px;
-      position: relative;
-    }
-    .mail-preview-text {
-      font-size: 11px;
-      color: #555;
-      line-height: 1.5;
-      max-height: 72px;
-      overflow: hidden;
-      white-space: pre-wrap;
-      mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
-      -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
-    }
-    .clear-mail-btn {
-      margin-top: 6px;
-      background: none;
-      border: none;
-      font-size: 11px;
-      color: #999;
-      cursor: pointer;
-      padding: 0;
-    }
-    .clear-mail-btn:hover { color: #111; }
-
+    /* Settings */
     .settings-panel { display: none; padding: 16px; flex-direction: column; gap: 12px; }
     .settings-panel.visible { display: flex; }
     .settings-title { font-weight: 600; font-size: 13px; display: flex; align-items: center; justify-content: space-between; }
@@ -243,7 +289,17 @@
       color: #111;
       background: #fafafa;
     }
-    .api-input:focus { outline: none; border-color: #111; }
+    .text-input {
+      width: 100%;
+      border: 1px solid #e5e5e5;
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      color: #111;
+      background: #fafafa;
+    }
+    .text-input:focus, .api-input:focus { outline: none; border-color: #111; }
     .save-btn {
       padding: 9px; background: #111; color: #fff;
       border: none; border-radius: 6px;
@@ -259,191 +315,331 @@
   <button class="settings-btn" id="settingsToggle">⚙</button>
 </div>
 
+<!-- Settings Panel -->
 <div class="settings-panel" id="settingsPanel">
   <div class="settings-title">
     Einstellungen
     <button class="close-btn" id="closeSettings">✕</button>
   </div>
   <div>
+    <div class="input-label">Dein Name</div>
+    <input type="text" class="text-input" id="userNameInput" placeholder="z.B. Julian Reitermann"/>
+  </div>
+  <div>
     <div class="input-label">OpenAI API Key</div>
     <input type="password" class="api-input" id="openaiKeyInput" placeholder="sk-..."/>
   </div>
   <div>
-    <div class="input-label">Zusatzanweisungen (optional)</div>
-    <textarea id="customPrompt" style="min-height:64px;background:#fafafa;"
-      placeholder="z.B.: Immer mit 'Mit freundlichen Grüßen' abschließen."></textarea>
+    <div class="input-label">Schreibstil / Zusatzanweisungen (optional)</div>
+    <textarea id="customPrompt" style="min-height:72px;background:#fafafa;"
+      placeholder="z.B.: Ich schreibe direkt und unkompliziert. Keine langen Floskeln."></textarea>
   </div>
   <button class="save-btn" id="saveSettings">Speichern</button>
 </div>
 
-<div class="content" id="mainContent">
+<!-- Tabs -->
+<div class="tabs" id="tabBar">
+  <button class="tab-btn active" data-tab="reply">Antworten</button>
+  <button class="tab-btn" data-tab="compose">Neue Mail</button>
+</div>
 
-  <div>
-    <div class="label">Stil</div>
-    <div class="style-grid">
-      <button class="style-btn active" data-style="formal">Formal</button>
-      <button class="style-btn" data-style="freundlich">Freundlich</button>
-      <button class="style-btn" data-style="kurz">Kurz</button>
+<!-- ═══ Tab: Antworten ════════════════════════════════════════════════════════ -->
+<div class="tab-panel active" id="tab-reply">
+  <div class="content">
+
+    <div>
+      <div class="label">Eingegangene Mail</div>
+      <div class="mail-card" id="mailCard">
+        <div class="mail-empty" id="mailEmpty">Mail wird geladen...</div>
+        <div id="mailLoaded" style="display:none;">
+          <div class="mail-card-header">
+            <div class="mail-from" id="mailFrom">–</div>
+            <div class="mail-subject" id="mailSubject">–</div>
+          </div>
+          <div class="mail-body-preview" id="mailBodyPreview"></div>
+        </div>
+        <button class="reload-btn" id="reloadMailBtn">↺ Mail neu einlesen</button>
+      </div>
     </div>
-  </div>
 
-  <div>
-    <div class="label">Antwort auf Mail</div>
-    <button class="read-mail-btn" id="readMailBtn">↓ Aktuelle Mail einlesen</button>
-    <div class="mail-preview" id="mailPreview" style="display:none;">
-      <div class="mail-preview-text" id="mailPreviewText"></div>
-      <button class="clear-mail-btn" id="clearMailBtn">✕ Entfernen</button>
+    <div>
+      <div class="label">Stil</div>
+      <div class="style-grid" id="styleGridReply">
+        <button class="style-btn active" data-style="formal">Formal</button>
+        <button class="style-btn" data-style="freundlich">Freundlich</button>
+        <button class="style-btn" data-style="kurz">Kurz</button>
+      </div>
     </div>
-  </div>
 
-  <div class="mic-area">
-    <button class="mic-btn" id="micBtn">🎙️</button>
-    <span class="mic-label" id="micLabel">Klicken zum Aufnehmen</span>
-  </div>
-
-  <div>
-    <div class="label">Transkript</div>
-    <textarea id="transcript" placeholder="Gesprochener Text erscheint hier – oder direkt eintippen."></textarea>
-  </div>
-
-  <button class="generate-btn" id="generateBtn" disabled>E-Mail formulieren</button>
-
-  <div class="result-section" id="resultSection">
-    <div class="label">Formulierter Text</div>
-    <textarea id="resultBox"></textarea>
-    <div class="action-row">
-      <button class="action-btn" id="regenerateBtn">↺ Neu formulieren</button>
-      <button class="action-btn primary" id="insertBtn">In E-Mail einfügen</button>
+    <div>
+      <div class="label">Hinweise (optional)</div>
+      <textarea id="hintsBox" placeholder="z.B. &quot;Termin bestätigen&quot; oder &quot;höflich ablehnen und Alternativtermin vorschlagen&quot;"></textarea>
+      <div class="mic-row">
+        <button class="mic-btn sm" id="micBtnHints">🎙️</button>
+        <span class="mic-label" id="micLabelHints">Hinweis einsprechen</span>
+      </div>
     </div>
-  </div>
 
+    <button class="main-btn" id="suggestBtn" disabled>Antwort vorschlagen</button>
+
+    <div class="result-section" id="resultSection1">
+      <div class="label">Vorgeschlagene Antwort</div>
+      <textarea id="resultBox"></textarea>
+      <div class="action-row">
+        <button class="action-btn" id="regenerateBtn">↺ Neu</button>
+        <button class="action-btn primary" id="insertBtn">In Antwort einfügen</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ Tab: Neue Mail ════════════════════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-compose">
+  <div class="content">
+
+    <div>
+      <div class="label">Stil</div>
+      <div class="style-grid" id="styleGridCompose">
+        <button class="style-btn active" data-style="formal">Formal</button>
+        <button class="style-btn" data-style="freundlich">Freundlich</button>
+        <button class="style-btn" data-style="kurz">Kurz</button>
+      </div>
+    </div>
+
+    <div class="mic-area">
+      <button class="mic-btn" id="micBtnCompose">🎙️</button>
+      <span class="mic-label" id="micLabelCompose">Klicken zum Aufnehmen</span>
+    </div>
+
+    <div>
+      <div class="label">Transkript</div>
+      <textarea id="transcript" placeholder="Gesprochener Text erscheint hier – oder direkt eintippen."></textarea>
+    </div>
+
+    <button class="main-btn" id="generateBtn" disabled>E-Mail formulieren</button>
+
+    <div class="result-section" id="resultSection2">
+      <div class="label">Formulierter Text</div>
+      <textarea id="resultBox2"></textarea>
+      <div class="action-row">
+        <button class="action-btn" id="regenerateBtn2">↺ Neu</button>
+        <button class="action-btn primary" id="insertBtn2">In E-Mail einfügen</button>
+      </div>
+    </div>
+
+  </div>
 </div>
 
 <div class="status-bar">
   <div class="dot" id="statusDot"></div>
-  <span id="statusText">Bereit</span>
+  <span id="statusText">Wird geladen...</span>
 </div>
 
 <script>
-let selectedStyle = 'formal';
-let originalMailText = '';
-
 const $ = id => document.getElementById(id);
+
+let mailData     = { from: '', subject: '', body: '' };
+let styleReply   = 'formal';
+let styleCompose = 'formal';
 
 function setStatus(type, msg) {
   $('statusDot').className = 'dot' + (type ? ' ' + type : '');
   $('statusText').textContent = msg;
 }
 
+// ── Settings ─────────────────────────────────────────────────────────────────
+
 function loadSettings() {
+  $('userNameInput').value  = localStorage.getItem('vm_user_name') || '';
   $('openaiKeyInput').value = localStorage.getItem('vm_openai_key') || '';
   $('customPrompt').value   = localStorage.getItem('vm_custom_prompt') || '';
 }
 $('settingsToggle').onclick = () => {
   loadSettings();
-  $('settingsPanel').classList.toggle('visible');
-  $('mainContent').style.display = $('settingsPanel').classList.contains('visible') ? 'none' : 'flex';
+  const open = $('settingsPanel').classList.toggle('visible');
+  $('tabBar').style.display        = open ? 'none' : '';
+  document.querySelectorAll('.tab-panel.active').forEach(p => p.style.display = open ? 'none' : '');
 };
 $('closeSettings').onclick = () => {
   $('settingsPanel').classList.remove('visible');
-  $('mainContent').style.display = 'flex';
+  $('tabBar').style.display = '';
+  document.querySelectorAll('.tab-panel.active').forEach(p => p.style.display = '');
 };
 $('saveSettings').onclick = () => {
-  localStorage.setItem('vm_openai_key', $('openaiKeyInput').value.trim());
+  localStorage.setItem('vm_user_name',     $('userNameInput').value.trim());
+  localStorage.setItem('vm_openai_key',    $('openaiKeyInput').value.trim());
   localStorage.setItem('vm_custom_prompt', $('customPrompt').value.trim());
-  $('settingsPanel').classList.remove('visible');
-  $('mainContent').style.display = 'flex';
+  $('closeSettings').click();
   setStatus('ok', 'Gespeichert');
 };
 
-document.querySelectorAll('.style-btn').forEach(btn => {
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.onclick = () => {
-    document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
-    selectedStyle = btn.dataset.style;
+    $('tab-' + btn.dataset.tab).classList.add('active');
   };
 });
 
-$('readMailBtn').onclick = () => {
+// ── Style buttons ─────────────────────────────────────────────────────────────
+
+document.querySelectorAll('#styleGridReply .style-btn').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('#styleGridReply .style-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    styleReply = btn.dataset.style;
+  };
+});
+document.querySelectorAll('#styleGridCompose .style-btn').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('#styleGridCompose .style-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    styleCompose = btn.dataset.style;
+  };
+});
+
+// ── Mail einlesen ─────────────────────────────────────────────────────────────
+
+function readCurrentMail() {
   if (typeof Office === 'undefined' || !Office.context?.mailbox?.item) {
-    setStatus('error', 'Office API nicht verfügbar');
+    $('mailEmpty').textContent = 'Keine Mail geöffnet (Testmodus)';
+    setStatus('warn', 'Testmodus');
     return;
   }
-  $('readMailBtn').disabled = true;
-  $('readMailBtn').textContent = '⏳ Wird eingelesen...';
-  Office.context.mailbox.item.body.getAsync(Office.CoercionType.Text, result => {
-    $('readMailBtn').disabled = false;
-    $('readMailBtn').textContent = '↓ Aktuelle Mail einlesen';
+  $('reloadMailBtn').disabled = true;
+  setStatus('warn', 'Mail wird eingelesen...');
+  const item    = Office.context.mailbox.item;
+  const from    = item.from?.displayName || item.from?.emailAddress || '';
+  const subject = item.subject || '(kein Betreff)';
+
+  item.body.getAsync(Office.CoercionType.Text, result => {
+    $('reloadMailBtn').disabled = false;
     if (result.status === Office.AsyncResultStatus.Failed) {
       setStatus('error', 'Fehler: ' + result.error.message);
+      $('mailEmpty').textContent = 'Fehler beim Einlesen der Mail.';
       return;
     }
-    const text = result.value.trim();
-    if (!text) { setStatus('warn', 'Mail ist leer'); return; }
-    // Strip excessive quoted history – keep first ~2000 chars
-    originalMailText = text.slice(0, 2000);
-    $('mailPreviewText').textContent = originalMailText;
-    $('mailPreview').style.display = 'block';
-    setStatus('ok', 'Mail eingelesen');
+    const body = result.value.trim();
+    if (!body && !from) {
+      $('mailEmpty').textContent = 'Keine Mail geöffnet oder Mail ist leer.';
+      $('mailEmpty').style.display  = 'block';
+      $('mailLoaded').style.display = 'none';
+      setStatus('warn', 'Keine Mail gefunden');
+      return;
+    }
+    mailData = { from, subject, body: body.slice(0, 3000) };
+    $('mailFrom').textContent        = from || '(unbekannt)';
+    $('mailSubject').textContent     = subject;
+    $('mailBodyPreview').textContent = mailData.body;
+    $('mailEmpty').style.display     = 'none';
+    $('mailLoaded').style.display    = 'block';
+    $('suggestBtn').disabled         = false;
+    setStatus('ok', 'Bereit');
   });
-};
+}
+$('reloadMailBtn').onclick = readCurrentMail;
 
-$('clearMailBtn').onclick = () => {
-  originalMailText = '';
-  $('mailPreview').style.display = 'none';
-  $('mailPreviewText').textContent = '';
-  setStatus('', 'Bereit');
-};
+// ── Mikrofon helper ───────────────────────────────────────────────────────────
 
-$('micBtn').onclick = () => {
+function startRecording(micBtn, micLabel, onTranscript) {
   const key = localStorage.getItem('vm_openai_key') || '';
   if (!key) { setStatus('error', 'OpenAI API Key fehlt – bitte in ⚙ eintragen'); return; }
   const url = 'https://willowy-empanada-20d9ee.netlify.app/recorder.html#' + encodeURIComponent(key);
-  $('micBtn').classList.add('recording'); $('micBtn').textContent = '⏳';
-  $('micLabel').textContent = 'Aufnahme läuft...';
+  micBtn.classList.add('recording'); micBtn.textContent = '⏳';
+  micLabel.textContent = 'Aufnahme läuft...';
   setStatus('warn', 'Sprich im Popup-Fenster...');
-  Office.context.ui.displayDialogAsync(url, { height: 35, width: 25 }, result => {
-    if (result.status === Office.AsyncResultStatus.Failed) {
-      setStatus('error', 'Fehler: ' + result.error.message);
-      $('micBtn').classList.remove('recording'); $('micBtn').textContent = '🎙️';
-      $('micLabel').textContent = 'Klicken zum Aufnehmen';
-      return;
+  Office.context.ui.displayDialogAsync(url, { height: 35, width: 25 }, res => {
+    if (res.status === Office.AsyncResultStatus.Failed) {
+      setStatus('error', 'Fehler: ' + res.error.message);
+      resetMic(micBtn, micLabel); return;
     }
-    const dialog = result.value;
+    const dialog = res.value;
     dialog.addEventHandler(Office.EventType.DialogMessageReceived, msg => {
-      dialog.close();
-      $('micBtn').classList.remove('recording'); $('micBtn').textContent = '🎙️';
-      $('micLabel').textContent = 'Klicken zum Aufnehmen';
+      dialog.close(); resetMic(micBtn, micLabel);
       try {
         const data = JSON.parse(msg.message);
-        if (data.type === 'transcript' && data.text) {
-          $('transcript').value = data.text;
-          updateBtn();
-          setStatus('ok', 'Transkript fertig');
-        }
+        if (data.type === 'transcript' && data.text) onTranscript(data.text);
       } catch(e) { setStatus('error', 'Fehler beim Empfangen'); }
     });
     dialog.addEventHandler(Office.EventType.DialogEventReceived, () => {
-      $('micBtn').classList.remove('recording'); $('micBtn').textContent = '🎙️';
-      $('micLabel').textContent = 'Klicken zum Aufnehmen';
-      setStatus('', 'Bereit');
+      resetMic(micBtn, micLabel); setStatus('', 'Bereit');
     });
   });
-};
+}
 
-function updateBtn() { $('generateBtn').disabled = !$('transcript').value.trim(); }
-$('transcript').oninput = updateBtn;
+function resetMic(btn, label) {
+  btn.classList.remove('recording'); btn.textContent = '🎙️';
+}
+
+// Hints mic (reply tab)
+$('micBtnHints').onclick = () => startRecording(
+  $('micBtnHints'), $('micLabelHints'),
+  text => {
+    $('hintsBox').value = ($('hintsBox').value ? $('hintsBox').value + ' ' : '') + text;
+    setStatus('ok', 'Hinweis aufgenommen');
+  }
+);
+
+// Compose mic
+$('micBtnCompose').onclick = () => startRecording(
+  $('micBtnCompose'), $('micLabelCompose'),
+  text => {
+    $('transcript').value = text;
+    updateComposeBtn();
+    setStatus('ok', 'Transkript fertig');
+  }
+);
+
+// ── Compose tab: enable button ────────────────────────────────────────────────
+
+function updateComposeBtn() { $('generateBtn').disabled = !$('transcript').value.trim(); }
+$('transcript').oninput = updateComposeBtn;
+
+// ── OpenAI calls ──────────────────────────────────────────────────────────────
 
 const styleLabels = {
-  formal: 'formell und geschäftlich, Sie-Form, strukturiert',
+  formal:     'formell und geschäftlich, Sie-Form, strukturiert',
   freundlich: 'freundlich-professionell, wertschätzend, klar',
-  kurz: 'sehr prägnant, auf das Wesentliche reduziert'
+  kurz:       'sehr prägnant, auf das Wesentliche reduziert'
 };
 
-async function callOpenAI() {
-  const key = localStorage.getItem('vm_openai_key') || '';
+async function callOpenAIReply() {
+  const key      = localStorage.getItem('vm_openai_key') || '';
+  const userName = localStorage.getItem('vm_user_name') || 'der Nutzer';
+  const extra    = localStorage.getItem('vm_custom_prompt') || '';
+  const hints    = $('hintsBox').value.trim();
   if (!key) { setStatus('error', 'OpenAI API Key fehlt – bitte in ⚙ eintragen'); return null; }
+
+  const system = `Du bist der persönliche E-Mail-Assistent von ${userName}. \
+Du liest eingehende E-Mails und formulierst eine passende Antwort, als wärst du ${userName} selbst. \
+Schreibe natürlich und authentisch im Namen von ${userName}. \
+Stil: ${styleLabels[styleReply]}. \
+Gib nur den Nachrichtentext aus – keine Anrede, keine Grußformel, kein Markdown. Trenne Absätze mit einer Leerzeile.${extra ? '\nPersönlicher Schreibstil: ' + extra : ''}`;
+
+  const user = `Eingehende E-Mail von ${mailData.from || 'unbekannt'}:\nBetreff: ${mailData.subject}\n\n${mailData.body}\n\n${hints ? 'Hinweise für die Antwort: ' + hints : 'Formuliere eine passende Antwort.'}`;
+
+  return fetchGPT(system, user);
+}
+
+async function callOpenAICompose() {
+  const key   = localStorage.getItem('vm_openai_key') || '';
   const extra = localStorage.getItem('vm_custom_prompt') || '';
+  if (!key) { setStatus('error', 'OpenAI API Key fehlt – bitte in ⚙ eintragen'); return null; }
+
+  const system = `Du bist ein professioneller E-Mail-Assistent für deutsche Geschäftskorrespondenz. \
+Formuliere den informell eingesprochenen Text in einen professionellen E-Mail-Text um. \
+Stil: ${styleLabels[styleCompose]}. \
+Nur den Nachrichtentext – keine Anrede, keine Grußformel, kein Markdown. Trenne Absätze mit einer Leerzeile.${extra ? '\nZusatz: ' + extra : ''}`;
+
+  return fetchGPT(system, $('transcript').value.trim());
+}
+
+async function fetchGPT(systemContent, userContent) {
+  const key = localStorage.getItem('vm_openai_key');
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
@@ -451,13 +647,8 @@ async function callOpenAI() {
       model: 'gpt-4o',
       max_tokens: 1024,
       messages: [
-        { role: 'system', content: `Du bist ein professioneller E-Mail-Assistent für deutsche Geschäftskorrespondenz.
-${originalMailText ? 'Du hilfst eine Antwort auf eine empfangene E-Mail zu formulieren. Beziehe dich inhaltlich auf die ursprüngliche Mail.' : 'Formuliere den informell eingesprochenen Text in einen professionellen E-Mail-Text um.'}
-Stil: ${styleLabels[selectedStyle]}
-Regeln: Nur den Nachrichtentext – keine Anrede, keine Grußformel. Trenne Absätze mit einer Leerzeile. Kein Markdown, keine Aufzählungszeichen.${extra ? '\nZusatz: ' + extra : ''}` },
-        ...(originalMailText ? [{ role: 'user', content: `Ursprüngliche E-Mail:\n${originalMailText}` },
-          { role: 'assistant', content: 'Ich habe die ursprüngliche E-Mail gelesen und werde eine passende Antwort formulieren.' }] : []),
-        { role: 'user', content: $('transcript').value.trim() }
+        { role: 'system', content: systemContent },
+        { role: 'user',   content: userContent }
       ]
     })
   });
@@ -465,6 +656,8 @@ Regeln: Nur den Nachrichtentext – keine Anrede, keine Grußformel. Trenne Abs�
   const data = await res.json();
   return data.choices?.[0]?.message?.content || '';
 }
+
+// ── Insert into mail ──────────────────────────────────────────────────────────
 
 function textToHtml(text) {
   return text.trim().split(/\n\n+/).map(p =>
@@ -484,34 +677,69 @@ function insertIntoMail(text) {
   }
 }
 
+// ── Run suggest (reply tab) ───────────────────────────────────────────────────
+
+async function runSuggest() {
+  $('suggestBtn').disabled = true;
+  $('suggestBtn').innerHTML = '<div class="spinner"></div> Antwort wird formuliert...';
+  $('resultSection1').classList.remove('visible');
+  setStatus('warn', 'Formuliert...');
+  try {
+    const result = await callOpenAIReply();
+    if (result) {
+      $('resultBox').value = result;
+      $('resultSection1').classList.add('visible');
+      setStatus('ok', 'Fertig');
+    }
+  } catch(e) {
+    setStatus('error', e.message);
+  } finally {
+    $('suggestBtn').disabled = false;
+    $('suggestBtn').textContent = 'Antwort vorschlagen';
+  }
+}
+
+$('suggestBtn').onclick   = runSuggest;
+$('regenerateBtn').onclick = runSuggest;
+$('insertBtn').onclick    = () => insertIntoMail($('resultBox').value.trim());
+
+// ── Run generate (compose tab) ────────────────────────────────────────────────
+
 async function runGenerate() {
   if (!$('transcript').value.trim()) return;
   $('generateBtn').disabled = true;
   $('generateBtn').innerHTML = '<div class="spinner"></div> Formuliert...';
-  $('resultSection').classList.remove('visible');
+  $('resultSection2').classList.remove('visible');
   setStatus('warn', 'Formuliert...');
   try {
-    const result = await callOpenAI();
+    const result = await callOpenAICompose();
     if (result) {
-      $('resultBox').value = result;
-      $('resultSection').classList.add('visible');
-      insertIntoMail(result);
+      $('resultBox2').value = result;
+      $('resultSection2').classList.add('visible');
+      setStatus('ok', 'Fertig');
     }
   } catch(e) {
     setStatus('error', e.message);
   } finally {
     $('generateBtn').disabled = false;
     $('generateBtn').textContent = 'E-Mail formulieren';
-    updateBtn();
+    updateComposeBtn();
   }
 }
 
-$('generateBtn').onclick = runGenerate;
-$('regenerateBtn').onclick = runGenerate;
-$('insertBtn').onclick = () => insertIntoMail($('resultBox').value.trim());
+$('generateBtn').onclick    = runGenerate;
+$('regenerateBtn2').onclick = runGenerate;
+$('insertBtn2').onclick     = () => insertIntoMail($('resultBox2').value.trim());
 
-if (typeof Office !== 'undefined') Office.onReady(() => { setStatus('ok', 'Bereit'); loadSettings(); });
-else { setStatus('', 'Testmodus'); loadSettings(); }
+// ── Init ──────────────────────────────────────────────────────────────────────
+
+if (typeof Office !== 'undefined') {
+  Office.onReady(() => { loadSettings(); readCurrentMail(); });
+} else {
+  loadSettings();
+  $('mailEmpty').textContent = 'Keine Mail geöffnet (Testmodus)';
+  setStatus('', 'Testmodus');
+}
 </script>
 </body>
 </html>
