@@ -695,16 +695,36 @@ function textToHtml(text) {
   ).join('');
 }
 
+function copyToClipboard(text) {
+  if (navigator.clipboard?.writeText) {
+    return navigator.clipboard.writeText(text);
+  }
+  // Fallback for webviews where the Clipboard API is unavailable.
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  document.execCommand('copy');
+  document.body.removeChild(ta);
+  return Promise.resolve();
+}
+
 function insertIntoMail(text) {
   const item = typeof Office !== 'undefined' ? Office.context?.mailbox?.item : null;
   if (!item) {
-    navigator.clipboard.writeText(text).then(() => setStatus('ok', 'In Zwischenablage kopiert'));
+    copyToClipboard(text).then(() => setStatus('ok', 'In Zwischenablage kopiert'));
     return;
   }
   if (isReadMode) {
-    // Read mode has no draft body to write into — open a reply window pre-filled instead.
-    item.displayReplyForm(text);
-    setStatus('ok', 'Antwort geöffnet');
+    // displayReplyForm is unsupported on Outlook Mobile (confirmed: it's listed
+    // as an unsupported Message Read API there) — it silently does nothing.
+    // Copying is the only reliable option: user taps Reply themselves and pastes.
+    copyToClipboard(text).then(
+      () => setStatus('ok', 'Kopiert – jetzt in Outlook auf "Antworten" tippen und einfügen'),
+      () => setStatus('error', 'Kopieren fehlgeschlagen')
+    );
     return;
   }
   const html = textToHtml(text);
@@ -726,9 +746,7 @@ async function runSuggest() {
     if (result) {
       $('resultBox').value = result;
       $('resultSection1').classList.add('visible');
-      // In read mode, inserting opens a whole new reply window — let the user review first
-      // instead of jumping there automatically.
-      if (!isReadMode) insertIntoMail(result);
+      insertIntoMail(result);
     }
   } catch(e) {
     setStatus('error', e.message);
@@ -776,7 +794,7 @@ function applyReadModeUi() {
   if (!isReadMode) return;
   // In read mode there's no draft to compose into — only the reply-suggestion flow applies.
   document.querySelector('.tab-btn[data-tab="compose"]').style.display = 'none';
-  $('insertBtn').textContent = 'Antwort öffnen';
+  $('insertBtn').textContent = '📋 Kopieren';
 }
 
 if (typeof Office !== 'undefined') {
