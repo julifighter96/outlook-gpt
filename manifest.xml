@@ -7,7 +7,7 @@
   xsi:type="MailApp">
 
   <Id>a1b2c3d4-e5f6-7890-abcd-ef1234567890</Id>
-  <Version>1.0.4</Version>
+  <Version>1.0.5</Version>
   <ProviderName>Reitermann Consulting</ProviderName>
   <DefaultLocale>de-DE</DefaultLocale>
   <DisplayName DefaultValue="VoiceMail AI"/>
@@ -46,15 +46,12 @@
   <VersionOverrides xmlns="http://schemas.microsoft.com/office/mailappversionoverrides" xsi:type="VersionOverridesV1_0">
    <VersionOverrides xmlns="http://schemas.microsoft.com/office/mailappversionoverrides/1.1" xsi:type="VersionOverridesV1_1">
     <Requirements>
-      <bt:Sets DefaultMinVersion="1.5">
+      <bt:Sets DefaultMinVersion="1.3">
         <bt:Set Name="Mailbox"/>
       </bt:Sets>
     </Requirements>
     <Hosts>
       <Host xsi:type="MailHost">
-        <Runtimes>
-          <Runtime resid="WebViewRuntime.Url"/>
-        </Runtimes>
         <DesktopFormFactor>
           <FunctionFile resid="Commands.Url"/>
           <ExtensionPoint xsi:type="MessageComposeCommandSurface">
@@ -103,12 +100,6 @@
               </Control>
             </Group>
           </ExtensionPoint>
-          <ExtensionPoint xsi:type="LaunchEvent">
-            <LaunchEvents>
-              <LaunchEvent Type="OnNewMessageCompose" FunctionName="onNewMessageComposeHandler"/>
-            </LaunchEvents>
-            <SourceLocation resid="WebViewRuntime.Url"/>
-          </ExtensionPoint>
         </MobileFormFactor>
       </Host>
     </Hosts>
@@ -123,7 +114,6 @@
       <bt:Urls>
         <bt:Url id="Commands.Url" DefaultValue="https://willowy-empanada-20d9ee.netlify.app/commands.html"/>
         <bt:Url id="Taskpane.Url" DefaultValue="https://willowy-empanada-20d9ee.netlify.app/taskpane.html"/>
-        <bt:Url id="WebViewRuntime.Url" DefaultValue="https://willowy-empanada-20d9ee.netlify.app/runtime.html"/>
       </bt:Urls>
       <bt:ShortStrings>
         <bt:String id="GroupLabel" DefaultValue="VoiceMail AI"/>

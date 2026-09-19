@@ -720,19 +720,11 @@ function insertIntoMail(text) {
   if (isReadMode) {
     // displayReplyForm is unsupported on Outlook Mobile (confirmed: it's listed
     // as an unsupported Message Read API there) — it silently does nothing.
-    // Copying is the reliable fallback: user taps Reply themselves and pastes.
+    // Copying is the only reliable option: user taps Reply themselves and pastes.
     copyToClipboard(text).then(
-      () => setStatus('ok', 'Kopiert – falls nicht automatisch eingefügt: in Outlook auf "Antworten" tippen und einfügen'),
+      () => setStatus('ok', 'Kopiert – jetzt in Outlook auf "Antworten" tippen und einfügen'),
       () => setStatus('error', 'Kopieren fehlgeschlagen')
     );
-    // EXPERIMENTAL: also stash it in roamingSettings so the LaunchEvent handler
-    // in runtime.html can try to auto-insert it via setSignatureAsync when the
-    // user taps native "Reply" next. Not guaranteed to sync in time — see
-    // runtime.html for details. Clipboard copy above is the safety net.
-    try {
-      Office.context.roamingSettings.set('vm_pending_reply', textToHtml(text));
-      Office.context.roamingSettings.saveAsync();
-    } catch (e) { /* best-effort only */ }
     return;
   }
   const html = textToHtml(text);
