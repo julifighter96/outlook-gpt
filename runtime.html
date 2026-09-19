@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*
+ * EXPERIMENTAL: Outlook Mobile has no supported way to insert AI-generated
+ * text into a reply from a Message Read taskpane (displayReplyForm is a
+ * documented no-op there). This is a workaround: the read taskpane stores
+ * the generated reply in roamingSettings before the user taps "Reply";
+ * OnNewMessageCompose fires when that reply compose opens (it fires for
+ * reply/reply-all/forward, not just brand-new messages) and, if a pending
+ * reply is waiting, injects it via setSignatureAsync (the one Compose body
+ * write API that's actually supported on mobile). Reliability depends on
+ * roamingSettings having synced in time, which Microsoft's own docs don't
+ * guarantee across add-in contexts on mobile — clipboard copy in
+ * taskpane.html remains the reliable fallback if this doesn't fire.
+ */
+
+Office.onReady();
+
+function onNewMessageComposeHandler(event) {
+  try {
+    const pending = Office.context.roamingSettings.get('vm_pending_reply');
+    if (!pending) { event.completed(); return; }
+
+    const item = Office.context.mailbox.item;
+    item.body.setSignatureAsync(pending, { coercionType: Office.CoercionType.Html }, () => {
+      // Consume it so it doesn't leak into an unrelated later compose.
+      Office.context.roamingSettings.remove('vm_pending_reply');
+      Office.context.roamingSettings.saveAsync(() => event.completed());
+    });
+  } catch (e) {
+    event.completed();
+  }
+}
+</script>
+</head>
+<body></body>
+</html>
