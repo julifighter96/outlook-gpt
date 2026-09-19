@@ -7,7 +7,7 @@
   xsi:type="MailApp">
 
   <Id>a1b2c3d4-e5f6-7890-abcd-ef1234567890</Id>
-  <Version>1.0.2</Version>
+  <Version>1.0.3</Version>
   <ProviderName>Reitermann Consulting</ProviderName>
   <DefaultLocale>de-DE</DefaultLocale>
   <DisplayName DefaultValue="VoiceMail AI"/>
@@ -83,10 +83,16 @@
               <Label resid="GroupLabel"/>
               <Control xsi:type="MobileButton" id="msgReadMobileButton">
                 <Label resid="TaskpaneButton.Label"/>
-                <Icon>
-                  <bt:Image size="25" resid="Icon.16x16"/>
-                  <bt:Image size="32" resid="Icon.32x32"/>
-                  <bt:Image size="48" resid="Icon.48x48"/>
+                <Icon xsi:type="bt:MobileIconList">
+                  <bt:Image size="25" scale="1" resid="Icon.16x16"/>
+                  <bt:Image size="25" scale="2" resid="Icon.16x16"/>
+                  <bt:Image size="25" scale="3" resid="Icon.16x16"/>
+                  <bt:Image size="32" scale="1" resid="Icon.32x32"/>
+                  <bt:Image size="32" scale="2" resid="Icon.32x32"/>
+                  <bt:Image size="32" scale="3" resid="Icon.32x32"/>
+                  <bt:Image size="48" scale="1" resid="Icon.48x48"/>
+                  <bt:Image size="48" scale="2" resid="Icon.48x48"/>
+                  <bt:Image size="48" scale="3" resid="Icon.48x48"/>
                 </Icon>
                 <Action xsi:type="ShowTaskpane">
                   <SourceLocation resid="Taskpane.Url"/>
