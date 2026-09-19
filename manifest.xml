@@ -7,7 +7,7 @@
   xsi:type="MailApp">
 
   <Id>a1b2c3d4-e5f6-7890-abcd-ef1234567890</Id>
-  <Version>1.0.0</Version>
+  <Version>1.0.1</Version>
   <ProviderName>Reitermann Consulting</ProviderName>
   <DefaultLocale>de-DE</DefaultLocale>
   <DisplayName DefaultValue="VoiceMail AI"/>
@@ -77,18 +77,21 @@
           </ExtensionPoint>
         </DesktopFormFactor>
         <MobileFormFactor>
-          <ExtensionPoint xsi:type="MobileMessageComposeCommandSurface">
-            <Control xsi:type="MobileButton" id="msgComposeMobileButton">
-              <Label resid="TaskpaneButton.Label"/>
-              <Icon>
-                <bt:Image size="25" resid="Icon.16x16"/>
-                <bt:Image size="32" resid="Icon.32x32"/>
-                <bt:Image size="48" resid="Icon.32x32"/>
-              </Icon>
-              <Action xsi:type="ShowTaskpane">
-                <SourceLocation resid="Taskpane.Url"/>
-              </Action>
-            </Control>
+          <ExtensionPoint xsi:type="MobileMessageReadCommandSurface">
+            <Group id="msgReadMobileGroup">
+              <Label resid="GroupLabel"/>
+              <Control xsi:type="MobileButton" id="msgReadMobileButton">
+                <Label resid="TaskpaneButton.Label"/>
+                <Icon>
+                  <bt:Image size="25" resid="Icon.16x16"/>
+                  <bt:Image size="32" resid="Icon.32x32"/>
+                  <bt:Image size="48" resid="Icon.48x48"/>
+                </Icon>
+                <Action xsi:type="ShowTaskpane">
+                  <SourceLocation resid="Taskpane.Url"/>
+                </Action>
+              </Control>
+            </Group>
           </ExtensionPoint>
         </MobileFormFactor>
       </Host>
@@ -99,6 +102,7 @@
         <bt:Image id="Icon.16x16" DefaultValue="https://willowy-empanada-20d9ee.netlify.app/assets/favicon-16x16.png"/>
         <bt:Image id="Icon.32x32" DefaultValue="https://willowy-empanada-20d9ee.netlify.app/assets/favicon-32x32.png"/>
         <bt:Image id="Icon.80x80" DefaultValue="https://willowy-empanada-20d9ee.netlify.app/assets/favicon-96x96.png"/>
+        <bt:Image id="Icon.48x48" DefaultValue="https://willowy-empanada-20d9ee.netlify.app/assets/android-icon-48x48.png"/>
       </bt:Images>
       <bt:Urls>
         <bt:Url id="Commands.Url" DefaultValue="https://willowy-empanada-20d9ee.netlify.app/commands.html"/>

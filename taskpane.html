@@ -471,6 +471,7 @@ const $ = id => document.getElementById(id);
 let mailData     = { from: '', subject: '', body: '' };
 let styleReply   = 'formal';
 let styleCompose = 'formal';
+let isReadMode   = false;
 
 function setStatus(type, msg) {
   $('statusDot').className = 'dot' + (type ? ' ' + type : '');
@@ -695,15 +696,22 @@ function textToHtml(text) {
 }
 
 function insertIntoMail(text) {
-  const html = textToHtml(text);
-  if (typeof Office !== 'undefined' && Office.context?.mailbox?.item) {
-    Office.context.mailbox.item.body.setAsync(html, { coercionType: Office.CoercionType.Html }, r => {
-      setStatus(r.status === Office.AsyncResultStatus.Succeeded ? 'ok' : 'error',
-        r.status === Office.AsyncResultStatus.Succeeded ? 'Eingefügt' : r.error.message);
-    });
-  } else {
+  const item = typeof Office !== 'undefined' ? Office.context?.mailbox?.item : null;
+  if (!item) {
     navigator.clipboard.writeText(text).then(() => setStatus('ok', 'In Zwischenablage kopiert'));
+    return;
   }
+  if (isReadMode) {
+    // Read mode has no draft body to write into — open a reply window pre-filled instead.
+    item.displayReplyForm(text);
+    setStatus('ok', 'Antwort geöffnet');
+    return;
+  }
+  const html = textToHtml(text);
+  item.body.setAsync(html, { coercionType: Office.CoercionType.Html }, r => {
+    setStatus(r.status === Office.AsyncResultStatus.Succeeded ? 'ok' : 'error',
+      r.status === Office.AsyncResultStatus.Succeeded ? 'Eingefügt' : r.error.message);
+  });
 }
 
 // ── Run suggest (reply tab) ───────────────────────────────────────────────────
@@ -718,7 +726,9 @@ async function runSuggest() {
     if (result) {
       $('resultBox').value = result;
       $('resultSection1').classList.add('visible');
-      insertIntoMail(result);
+      // In read mode, inserting opens a whole new reply window — let the user review first
+      // instead of jumping there automatically.
+      if (!isReadMode) insertIntoMail(result);
     }
   } catch(e) {
     setStatus('error', e.message);
@@ -762,8 +772,20 @@ $('insertBtn2').onclick     = () => insertIntoMail($('resultBox2').value.trim())
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 
+function applyReadModeUi() {
+  if (!isReadMode) return;
+  // In read mode there's no draft to compose into — only the reply-suggestion flow applies.
+  document.querySelector('.tab-btn[data-tab="compose"]').style.display = 'none';
+  $('insertBtn').textContent = 'Antwort öffnen';
+}
+
 if (typeof Office !== 'undefined') {
-  Office.onReady(() => { loadSettings(); readCurrentMail(); });
+  Office.onReady(() => {
+    isReadMode = typeof Office.context?.mailbox?.item?.displayReplyForm === 'function';
+    applyReadModeUi();
+    loadSettings();
+    readCurrentMail();
+  });
 } else {
   loadSettings();
   $('mailEmpty').textContent = 'Keine Mail geöffnet (Testmodus)';
