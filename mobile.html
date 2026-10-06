@@ -264,10 +264,6 @@
     <input type="text" class="text-input" id="userNameInput" placeholder="z.B. Julian Reitermann"/>
   </div>
   <div>
-    <div class="input-label">OpenAI API Key</div>
-    <input type="password" class="api-input" id="openaiKeyInput" placeholder="sk-..."/>
-  </div>
-  <div>
     <div class="input-label">Schreibstil / Zusatzanweisungen (optional)</div>
     <textarea id="customPrompt" style="min-height:72px;background:#fafafa;"
       placeholder="z.B.: Ich schreibe direkt und unkompliziert. Keine langen Floskeln."></textarea>
@@ -374,7 +370,6 @@ function setStatus(type, msg) {
 
 function loadSettings() {
   $('userNameInput').value  = localStorage.getItem('vm_user_name') || '';
-  $('openaiKeyInput').value = localStorage.getItem('vm_openai_key') || '';
   $('customPrompt').value   = localStorage.getItem('vm_custom_prompt') || '';
 }
 $('settingsToggle').onclick = () => {
@@ -390,7 +385,6 @@ $('closeSettings').onclick = () => {
 };
 $('saveSettings').onclick = () => {
   localStorage.setItem('vm_user_name',     $('userNameInput').value.trim());
-  localStorage.setItem('vm_openai_key',    $('openaiKeyInput').value.trim());
   localStorage.setItem('vm_custom_prompt', $('customPrompt').value.trim());
   $('closeSettings').click();
   setStatus('ok', 'Gespeichert');
@@ -434,61 +428,36 @@ $('transcript').oninput = updateGenerateBtn;
 
 // ── OpenAI calls ──────────────────────────────────────────────────────────────
 
-const styleLabels = {
-  formal:     'formell und geschäftlich, Sie-Form, strukturiert',
-  freundlich: 'freundlich-professionell, wertschätzend, klar',
-  kurz:       'sehr prägnant, auf das Wesentliche reduziert'
-};
-
 async function callOpenAIReply() {
-  const key      = localStorage.getItem('vm_openai_key') || '';
-  const userName = localStorage.getItem('vm_user_name') || 'der Nutzer';
-  const extra    = localStorage.getItem('vm_custom_prompt') || '';
-  const hints    = $('hintsBox').value.trim();
-  const incoming = $('incomingMail').value.trim();
-  if (!key) { setStatus('error', 'OpenAI API Key fehlt – bitte in ⚙ eintragen'); return null; }
+  const hints = $('hintsBox').value.trim();
+  const content = `Eingehende E-Mail:
 
-  const system = `Du bist der persönliche E-Mail-Assistent von ${userName}. \
-Du liest eingehende E-Mails und formulierst eine passende Antwort, als wärst du ${userName} selbst. \
-Schreibe natürlich und authentisch im Namen von ${userName}. \
-Stil: ${styleLabels[styleReply]}. \
-Gib nur den Nachrichtentext aus – keine Anrede, keine Grußformel, kein Markdown. Trenne Absätze mit einer Leerzeile.${extra ? '\nPersönlicher Schreibstil: ' + extra : ''}`;
+${$('incomingMail').value.trim()}
 
-  const user = `Eingehende E-Mail:\n\n${incoming}\n\n${hints ? 'Hinweise für die Antwort: ' + hints : 'Formuliere eine passende Antwort.'}`;
-
-  return fetchGPT(system, user);
+${hints ? 'Hinweise für die Antwort: ' + hints : 'Formuliere eine passende Antwort.'}`;
+  return fetchGPT({
+    mode: 'reply', style: styleReply, content,
+    userName: localStorage.getItem('vm_user_name') || '',
+    extra: localStorage.getItem('vm_custom_prompt') || ''
+  });
 }
 
 async function callOpenAICompose() {
-  const key   = localStorage.getItem('vm_openai_key') || '';
-  const extra = localStorage.getItem('vm_custom_prompt') || '';
-  if (!key) { setStatus('error', 'OpenAI API Key fehlt – bitte in ⚙ eintragen'); return null; }
-
-  const system = `Du bist ein professioneller E-Mail-Assistent für deutsche Geschäftskorrespondenz. \
-Formuliere den informell eingesprochenen Text in einen professionellen E-Mail-Text um. \
-Stil: ${styleLabels[styleCompose]}. \
-Nur den Nachrichtentext – keine Anrede, keine Grußformel, kein Markdown. Trenne Absätze mit einer Leerzeile.${extra ? '\nZusatz: ' + extra : ''}`;
-
-  return fetchGPT(system, $('transcript').value.trim());
+  return fetchGPT({
+    mode: 'compose', style: styleCompose, content: $('transcript').value.trim(),
+    extra: localStorage.getItem('vm_custom_prompt') || ''
+  });
 }
 
-async function fetchGPT(systemContent, userContent) {
-  const key = localStorage.getItem('vm_openai_key');
-  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+async function fetchGPT(payload) {
+  const res = await fetch('/.netlify/functions/chat', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
-    body: JSON.stringify({
-      model: 'gpt-4o',
-      max_tokens: 1024,
-      messages: [
-        { role: 'system', content: systemContent },
-        { role: 'user',   content: userContent }
-      ]
-    })
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
   });
-  if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e?.error?.message || `HTTP ${res.status}`); }
-  const data = await res.json();
-  return data.choices?.[0]?.message?.content || '';
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data?.error?.message || `HTTP ${res.status}`);
+  return data.text || '';
 }
 
 // ── Copy / Share ────────────────────────────────────────────────────────────────

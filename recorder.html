@@ -63,8 +63,6 @@ function setStatus(msg, isError) {
 }
 
 async function transcribe(blob) {
-  const key = decodeURIComponent(window.location.hash.slice(1));
-  if (!key) { setStatus('Kein OpenAI Key übergeben', true); return; }
   setStatus('Whisper transkribiert...');
   document.getElementById('label').textContent = 'Bitte warten...';
   document.getElementById('micIcon').className = 'mic-btn idle';
@@ -72,13 +70,7 @@ async function transcribe(blob) {
   try {
     const form = new FormData();
     form.append('file', blob, 'audio.webm');
-    form.append('model', 'whisper-1');
-    form.append('language', 'de');
-    const res = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-      method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + key },
-      body: form
-    });
+    const res = await fetch('/.netlify/functions/transcribe', { method: 'POST', body: form });
     if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e?.error?.message || `HTTP ${res.status}`); }
     const data = await res.json();
     Office.context.ui.messageParent(JSON.stringify({ type: 'transcript', text: data.text || '' }));
