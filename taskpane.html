@@ -8,13 +8,28 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
 
   <style>
+    :root {
+      --bg: #ffffff;
+      --surface: #f5f5f6;
+      --border: #e6e6e9;
+      --text: #111113;
+      --muted: #6b6b73;
+      --subtle: #a3a3ab;
+      --accent: #111113;
+      --on-accent: #ffffff;
+      --danger: #d92d20;
+      --warn: #f59e0b;
+      --ok: #12b76a;
+      --radius: 10px;
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: 'Inter', sans-serif;
+      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
       font-size: 14px;
-      background: #fff;
-      color: #111;
+      background: var(--bg);
+      color: var(--text);
       height: 100dvh;
       display: flex;
       flex-direction: column;
@@ -22,443 +37,357 @@
       -webkit-text-size-adjust: 100%;
     }
 
-    button, input, textarea, select {
+    button, input, textarea {
+      font-family: inherit;
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
     }
+    button { cursor: pointer; }
+    svg { display: block; }
+    [hidden] { display: none !important; }
 
+    /* Header */
     .header {
-      padding: 12px 16px;
-      padding-top: max(12px, env(safe-area-inset-top));
-      border-bottom: 1px solid #e5e5e5;
+      padding: 10px 12px 10px 16px;
+      padding-top: max(10px, env(safe-area-inset-top));
       display: flex;
       align-items: center;
       justify-content: space-between;
       flex-shrink: 0;
     }
-    .logo { font-size: 15px; font-weight: 600; letter-spacing: -0.2px; }
-    .settings-btn {
-      background: none; border: none; color: #999; cursor: pointer; font-size: 20px;
-      min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center;
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; letter-spacing: -0.2px; }
+    .brand-mark {
+      width: 28px; height: 28px; border-radius: 8px;
+      background: var(--accent); color: var(--on-accent);
+      display: flex; align-items: center; justify-content: center;
     }
+    .icon-btn {
+      width: 40px; height: 40px; border-radius: 8px;
+      border: none; background: none; color: var(--muted);
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s, color .15s;
+    }
+    .icon-btn:hover { background: var(--surface); color: var(--text); }
+    .icon-btn:disabled { opacity: .4; pointer-events: none; }
+    .icon-btn.sm { width: 32px; height: 32px; }
 
-    /* Tabs */
-    .tabs {
+    /* Segmented control (tabs + tone) */
+    .segmented {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      border-bottom: 1px solid #e5e5e5;
-      flex-shrink: 0;
+      grid-auto-flow: column;
+      grid-auto-columns: 1fr;
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 3px;
+      gap: 2px;
     }
-    .tab-btn {
-      padding: 13px 10px;
-      background: none;
-      border: none;
-      font-family: 'Inter', sans-serif;
-      font-size: 13px;
-      font-weight: 500;
-      color: #999;
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-      transition: all .15s;
-      min-height: 44px;
+    .segmented button {
+      border: none; background: none;
+      padding: 8px 6px; min-height: 36px;
+      border-radius: 8px;
+      font-size: 13px; font-weight: 500;
+      color: var(--muted);
+      transition: background .15s, color .15s, box-shadow .15s;
     }
-    .tab-btn.active { color: #111; border-bottom-color: #111; }
-
-    .tab-panel { display: none; flex: 1; overflow: hidden; }
-    .tab-panel.active { display: flex; flex-direction: column; overflow: hidden; }
-
-    .content {
-      flex: 1;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
+    .segmented button.active {
+      background: var(--bg); color: var(--text);
+      box-shadow: 0 1px 2px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
     }
+    .tabs { margin: 0 16px 4px; flex-shrink: 0; }
 
-    .label {
-      font-size: 11px;
-      font-weight: 500;
-      color: #999;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      margin-bottom: 6px;
+    /* Layout */
+    .view { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .content { padding: 12px 16px 20px; display: flex; flex-direction: column; gap: 18px; }
+
+    .field-label {
+      font-size: 12px; font-weight: 500; color: var(--muted);
+      margin-bottom: 8px;
+      display: flex; align-items: center; justify-content: space-between;
     }
 
     /* Mail card */
-    .mail-card {
-      border: 1px solid #e5e5e5;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    .mail-card-header {
-      background: #f7f7f7;
-      padding: 10px 14px;
-      border-bottom: 1px solid #e5e5e5;
-    }
-    .mail-from {
-      font-size: 13px;
-      font-weight: 600;
-      color: #111;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .mail-subject {
-      font-size: 12px;
-      color: #666;
-      margin-top: 2px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .mail-body-preview {
-      padding: 10px 14px;
-      font-size: 12px;
-      color: #777;
-      line-height: 1.55;
-      max-height: 72px;
-      overflow: hidden;
-      white-space: pre-wrap;
-      mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
-      -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
-    }
-    .mail-empty {
-      padding: 20px 14px;
-      text-align: center;
-      color: #bbb;
-      font-size: 13px;
-    }
-    .reload-btn {
-      width: 100%;
-      padding: 11px;
-      border: none;
-      border-top: 1px solid #e5e5e5;
-      background: #fafafa;
-      font-family: 'Inter', sans-serif;
-      font-size: 13px;
-      color: #999;
-      cursor: pointer;
-      transition: all .15s;
-      min-height: 44px;
-    }
-    .reload-btn:active { background: #f0f0f0; color: #111; }
-    .reload-btn:disabled { opacity: 0.4; }
-
-    /* Style */
-    .style-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-    }
-    .style-btn {
-      border: 1px solid #e5e5e5;
-      background: #fff;
-      border-radius: 8px;
-      color: #666;
-      cursor: pointer;
-      padding: 11px 4px;
-      text-align: center;
-      font-family: 'Inter', sans-serif;
-      font-size: 13px;
-      font-weight: 500;
-      transition: all .15s;
-      min-height: 44px;
-    }
-    .style-btn:active { border-color: #111; color: #111; }
-    .style-btn.active { background: #111; border-color: #111; color: #fff; }
-
-    /* Textareas — 16px prevents iOS auto-zoom */
-    textarea {
-      width: 100%;
-      border: 1px solid #e5e5e5;
-      border-radius: 8px;
-      padding: 11px 12px;
-      font-family: 'Inter', sans-serif;
-      font-size: 16px;
-      line-height: 1.6;
-      color: #111;
-      resize: none;
-      background: #fafafa;
-      transition: border-color .15s;
-    }
-    textarea:focus { outline: none; border-color: #111; background: #fff; }
-    textarea::placeholder { color: #bbb; }
-    #hintsBox    { min-height: 60px; }
-    #transcript  { min-height: 80px; }
-    #resultBox   { min-height: 120px; background: #fff; }
-    #resultBox2  { min-height: 120px; background: #fff; }
-
-    /* Mic */
-    .mic-area {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-      padding: 8px 0;
-    }
-    .mic-btn {
-      width: 72px; height: 72px;
-      border-radius: 50%;
-      border: 1.5px solid #ddd;
-      background: #fff;
-      cursor: pointer;
-      font-size: 28px;
+    .mail-card { border: 1px solid var(--border); border-radius: var(--radius); }
+    .mail-head { display: flex; align-items: center; gap: 10px; padding: 10px 6px 10px 12px; }
+    .avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--surface); color: var(--muted);
+      font-size: 12px; font-weight: 600;
       display: flex; align-items: center; justify-content: center;
-      transition: all .2s;
       flex-shrink: 0;
     }
-    .mic-btn:active { border-color: #111; }
-    .mic-btn.recording {
-      background: #111; border-color: #111;
-      animation: pulse 1.4s ease-in-out infinite;
-    }
-    .mic-btn.sm {
-      width: 44px; height: 44px;
-      font-size: 18px;
-    }
-    @keyframes pulse {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(0,0,0,0.2); }
-      50%       { box-shadow: 0 0 0 10px rgba(0,0,0,0); }
-    }
-    .mic-label { font-size: 12px; color: #999; }
-    .mic-row { display: flex; align-items: center; gap: 12px; margin-top: 6px; }
-
-    /* Main buttons */
-    .main-btn {
-      width: 100%;
-      padding: 14px;
-      background: #111;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-family: 'Inter', sans-serif;
-      font-weight: 600;
-      font-size: 15px;
+    .mail-meta { flex: 1; min-width: 0; }
+    .mail-from, .mail-subject { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mail-from { font-size: 13px; font-weight: 600; }
+    .mail-subject { font-size: 12px; color: var(--muted); margin-top: 1px; }
+    .mail-preview {
+      border-top: 1px solid var(--border);
+      padding: 10px 12px;
+      font-size: 12px; line-height: 1.55; color: var(--muted);
+      white-space: pre-wrap;
+      max-height: calc(1.55em * 3 + 20px);
+      overflow: hidden;
+      mask-image: linear-gradient(to bottom, #000 55%, transparent);
+      -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent);
       cursor: pointer;
-      transition: opacity .15s;
-      display: flex; align-items: center; justify-content: center; gap: 6px;
-      min-height: 50px;
-      flex-shrink: 0;
     }
-    .main-btn:active:not(:disabled) { opacity: 0.8; }
-    .main-btn:disabled { opacity: 0.3; }
+    .mail-preview.expanded { max-height: 240px; overflow-y: auto; mask-image: none; -webkit-mask-image: none; }
+    .mail-empty { padding: 18px 12px; text-align: center; color: var(--subtle); font-size: 13px; }
+
+    /* Inputs */
+    textarea, .text-input {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 11px 12px;
+      font-size: 16px; /* prevents iOS auto-zoom */
+      line-height: 1.55;
+      color: var(--text);
+      background: var(--bg);
+      transition: border-color .15s, box-shadow .15s;
+    }
+    textarea { resize: vertical; min-height: 84px; display: block; }
+    textarea:focus, .text-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(17,17,19,.06); }
+    textarea::placeholder, .text-input::placeholder { color: var(--subtle); }
+
+    .input-wrap { position: relative; }
+    .input-wrap textarea { padding-right: 52px; }
+    .input-wrap .mic-inline { position: absolute; right: 8px; bottom: 8px; }
+
+    /* Mic buttons */
+    .mic-inline {
+      width: 36px; height: 36px; border-radius: 50%;
+      border: 1px solid var(--border); background: var(--bg); color: var(--text);
+      display: flex; align-items: center; justify-content: center;
+      transition: all .15s;
+    }
+    .mic-inline:hover { border-color: var(--accent); }
+    .mic-hero { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 6px 0 2px; }
+    .mic-big {
+      width: 76px; height: 76px; border-radius: 50%;
+      border: none; background: var(--accent); color: var(--on-accent);
+      display: flex; align-items: center; justify-content: center;
+      transition: transform .15s;
+    }
+    .mic-big:active { transform: scale(.96); }
+    .mic-caption { font-size: 12px; color: var(--muted); }
+    .recording { animation: pulse 1.4s ease-in-out infinite; }
+    .mic-inline.recording { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(17,17,19,.25); }
+      50%      { box-shadow: 0 0 0 10px rgba(17,17,19,0); }
+    }
+
+    .divider { display: flex; align-items: center; gap: 10px; color: var(--subtle); font-size: 12px; }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    /* Buttons */
+    .btn {
+      width: 100%;
+      min-height: 46px; padding: 12px 16px;
+      border-radius: var(--radius);
+      font-size: 14px; font-weight: 600;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: opacity .15s, background .15s;
+    }
+    .btn-primary { background: var(--accent); color: var(--on-accent); border: none; }
+    .btn-primary:hover:not(:disabled) { opacity: .88; }
+    .btn-primary:disabled { opacity: .3; cursor: default; }
+    .btn-secondary { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: var(--surface); }
 
     .spinner {
-      width: 14px; height: 14px;
-      border: 2px solid rgba(255,255,255,0.4);
-      border-top-color: #fff;
-      border-radius: 50%;
+      width: 14px; height: 14px; border-radius: 50%;
+      border: 2px solid rgba(255,255,255,.35); border-top-color: currentColor;
       animation: spin .6s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    .result-section { display: none; }
-    .result-section.visible { display: block; }
-
-    .action-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-top: 8px;
+    /* Result */
+    .result-card {
+      border: 1px solid var(--border); border-radius: var(--radius);
+      background: var(--surface);
+      padding: 4px 4px 4px;
+      animation: rise .2s ease-out;
     }
-    .action-btn {
-      padding: 12px 8px;
-      border: 1px solid #e5e5e5;
-      background: #fff;
-      border-radius: 8px;
-      font-family: 'Inter', sans-serif;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      color: #444;
-      transition: all .15s;
-      min-height: 44px;
-    }
-    .action-btn:active { border-color: #111; color: #111; }
-    .action-btn.primary { background: #111; border-color: #111; color: #fff; }
-    .action-btn.primary:active { opacity: 0.8; }
+    .result-head { display: flex; align-items: center; justify-content: space-between; padding: 4px 4px 4px 10px; }
+    .result-title { font-size: 12px; font-weight: 600; color: var(--muted); }
+    .result-tools { display: flex; gap: 2px; }
+    .result-card textarea { min-height: 160px; border-color: transparent; }
+    .result-card textarea:focus { border-color: var(--accent); }
+    .result-card .btn { margin-top: 4px; }
+    @keyframes rise { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 
     /* Status */
     .status-bar {
-      padding: 10px 16px;
-      padding-bottom: max(10px, env(safe-area-inset-bottom));
-      border-top: 1px solid #e5e5e5;
-      font-size: 12px;
-      color: #999;
-      display: flex; align-items: center; gap: 6px;
+      padding: 8px 16px;
+      padding-bottom: max(8px, env(safe-area-inset-bottom));
+      border-top: 1px solid var(--border);
+      font-size: 12px; color: var(--muted);
+      display: flex; align-items: center; gap: 8px;
       flex-shrink: 0;
     }
-    .dot { width: 6px; height: 6px; border-radius: 50%; background: #ddd; flex-shrink: 0; }
-    .dot.ok    { background: #111; }
-    .dot.error { background: #cc0000; }
-    .dot.warn  { background: #f59e0b; }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--subtle); flex-shrink: 0; }
+    .dot.ok    { background: var(--ok); }
+    .dot.error { background: var(--danger); }
+    .dot.warn  { background: var(--warn); }
+    .status-bar.error { color: var(--danger); }
 
     /* Settings */
-    .settings-panel { display: none; padding: 16px; flex-direction: column; gap: 14px; overflow-y: auto; -webkit-overflow-scrolling: touch; flex: 1; }
-    .settings-panel.visible { display: flex; }
-    .settings-title { font-weight: 600; font-size: 15px; display: flex; align-items: center; justify-content: space-between; }
-    .close-btn {
-      background: none; border: none; color: #999; cursor: pointer; font-size: 20px;
-      min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center;
-    }
-    .input-label { font-size: 12px; color: #999; margin-bottom: 5px; font-weight: 500; }
-    .api-input {
-      width: 100%;
-      border: 1px solid #e5e5e5;
-      border-radius: 8px;
-      padding: 11px 12px;
-      font-family: monospace;
-      font-size: 16px;
-      color: #111;
-      background: #fafafa;
-    }
-    .text-input {
-      width: 100%;
-      border: 1px solid #e5e5e5;
-      border-radius: 8px;
-      padding: 11px 12px;
-      font-family: 'Inter', sans-serif;
-      font-size: 16px;
-      color: #111;
-      background: #fafafa;
-    }
-    .text-input:focus, .api-input:focus { outline: none; border-color: #111; }
-    .save-btn {
-      padding: 13px; background: #111; color: #fff;
-      border: none; border-radius: 8px;
-      font-family: 'Inter', sans-serif; font-weight: 600; font-size: 15px; cursor: pointer;
-      min-height: 50px;
-    }
-    .save-btn:active { opacity: 0.8; }
+    .settings-head { display: flex; align-items: center; gap: 4px; padding: 0 12px 4px 8px; font-weight: 600; font-size: 15px; }
+    .help { font-size: 12px; color: var(--subtle); margin-top: 6px; line-height: 1.45; }
   </style>
 </head>
 <body>
 
 <div class="header">
-  <div class="logo">VoiceMail AI</div>
-  <button class="settings-btn" id="settingsToggle">⚙</button>
+  <div class="brand">
+    <div class="brand-mark">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v4"/></svg>
+    </div>
+    VoiceMail AI
+  </div>
+  <button class="icon-btn" id="settingsToggle" title="Einstellungen" aria-label="Einstellungen">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg>
+  </button>
 </div>
 
-<!-- Settings Panel -->
-<div class="settings-panel" id="settingsPanel">
-  <div class="settings-title">
+<!-- ═══ Settings ══════════════════════════════════════════════════════════════ -->
+<div class="view" id="settingsView" hidden>
+  <div class="settings-head">
+    <button class="icon-btn sm" id="closeSettings" title="Zurück" aria-label="Zurück">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
     Einstellungen
-    <button class="close-btn" id="closeSettings">✕</button>
   </div>
-  <div>
-    <div class="input-label">Dein Name</div>
-    <input type="text" class="text-input" id="userNameInput" placeholder="z.B. Julian Reitermann"/>
-  </div>
-  <div>
-    <div class="input-label">Schreibstil / Zusatzanweisungen (optional)</div>
-    <textarea id="customPrompt" style="min-height:72px;background:#fafafa;"
-      placeholder="z.B.: Ich schreibe direkt und unkompliziert. Keine langen Floskeln."></textarea>
-  </div>
-  <button class="save-btn" id="saveSettings">Speichern</button>
-  <div style="font-size:12px;color:#999;line-height:1.5;">
-    📱 Auf dem Handy: <a href="https://willowy-empanada-20d9ee.netlify.app/mobile.html" target="_blank" style="color:#111;">mobile.html</a> im Browser öffnen und zum Home-Bildschirm hinzufügen (Outlook Mobile unterstützt aktuell keine Add-in-Buttons beim Verfassen einer Mail).
+  <div class="content">
+    <div>
+      <div class="field-label">Dein Name</div>
+      <input type="text" class="text-input" id="userNameInput" placeholder="z.B. Julian Reitermann"/>
+      <div class="help">Antworten werden in deinem Namen formuliert.</div>
+    </div>
+    <div>
+      <div class="field-label">Persönlicher Schreibstil</div>
+      <textarea id="customPrompt" placeholder="z.B. Ich schreibe direkt und unkompliziert, ohne lange Floskeln."></textarea>
+    </div>
+    <button class="btn btn-primary" id="saveSettings">Speichern</button>
   </div>
 </div>
 
-<!-- Tabs -->
-<div class="tabs" id="tabBar">
-  <button class="tab-btn active" data-tab="reply">Antworten</button>
-  <button class="tab-btn" data-tab="compose">Neue Mail</button>
+<!-- ═══ Main ══════════════════════════════════════════════════════════════════ -->
+<div class="segmented tabs" id="tabBar">
+  <button class="active" data-tab="reply">Antworten</button>
+  <button data-tab="compose">Neue Mail</button>
 </div>
 
-<!-- ═══ Tab: Antworten ════════════════════════════════════════════════════════ -->
-<div class="tab-panel active" id="tab-reply">
+<!-- Tab: Antworten -->
+<div class="view" id="tab-reply">
   <div class="content">
 
-    <div>
-      <div class="label">Eingegangene Mail</div>
-      <div class="mail-card" id="mailCard">
-        <div class="mail-empty" id="mailEmpty">Mail wird geladen...</div>
-        <div id="mailLoaded" style="display:none;">
-          <div class="mail-card-header">
+    <div class="mail-card">
+      <div class="mail-empty" id="mailEmpty">Mail wird geladen…</div>
+      <div id="mailLoaded" hidden>
+        <div class="mail-head">
+          <div class="avatar" id="mailAvatar">?</div>
+          <div class="mail-meta">
             <div class="mail-from" id="mailFrom">–</div>
             <div class="mail-subject" id="mailSubject">–</div>
           </div>
-          <div class="mail-body-preview" id="mailBodyPreview"></div>
+          <button class="icon-btn sm" id="reloadMailBtn" title="Mail neu einlesen" aria-label="Mail neu einlesen">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>
+          </button>
         </div>
-        <button class="reload-btn" id="reloadMailBtn">↺ Mail neu einlesen</button>
+        <div class="mail-preview" id="mailPreview" title="Klicken zum Aufklappen"></div>
       </div>
     </div>
 
     <div>
-      <div class="label">Stil</div>
-      <div class="style-grid" id="styleGridReply">
-        <button class="style-btn active" data-style="formal">Formal</button>
-        <button class="style-btn" data-style="freundlich">Freundlich</button>
-        <button class="style-btn" data-style="kurz">Kurz</button>
+      <div class="field-label">Ton</div>
+      <div class="segmented" data-style-group="reply">
+        <button class="active" data-style="formal">Formal</button>
+        <button data-style="freundlich">Freundlich</button>
+        <button data-style="kurz">Kurz</button>
       </div>
     </div>
 
     <div>
-      <div class="label">Hinweise (optional)</div>
-      <textarea id="hintsBox" placeholder="z.B. &quot;Termin bestätigen&quot; oder &quot;höflich ablehnen und Alternativtermin vorschlagen&quot;"></textarea>
-      <div class="mic-row">
-        <button class="mic-btn sm" id="micBtnHints">🎙️</button>
-        <span class="mic-label" id="micLabelHints">Hinweis einsprechen</span>
+      <div class="field-label">Was soll die Antwort sagen? <span style="color:var(--subtle);font-weight:400;">optional</span></div>
+      <div class="input-wrap">
+        <textarea id="hintsBox" placeholder="z.B. Termin bestätigen"></textarea>
+        <button class="mic-inline" id="micBtnHints" title="Einsprechen" aria-label="Einsprechen">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v4"/></svg>
+        </button>
       </div>
     </div>
 
-    <button class="main-btn" id="suggestBtn" disabled>Antwort vorschlagen</button>
+    <button class="btn btn-primary" id="suggestBtn" disabled>Antwort vorschlagen</button>
 
-    <div class="result-section" id="resultSection1">
-      <div class="label">Vorgeschlagene Antwort</div>
+    <div class="result-card" id="resultSection1" hidden>
+      <div class="result-head">
+        <span class="result-title">Vorschlag</span>
+        <div class="result-tools">
+          <button class="icon-btn sm" id="regenerateBtn" title="Neu formulieren" aria-label="Neu formulieren">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>
+          </button>
+          <button class="icon-btn sm" id="copyBtn" title="Kopieren" aria-label="Kopieren">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+          </button>
+        </div>
+      </div>
       <textarea id="resultBox"></textarea>
-      <div class="action-row">
-        <button class="action-btn" id="regenerateBtn">↺ Neu</button>
-        <button class="action-btn primary" id="insertBtn">In Antwort einfügen</button>
-      </div>
+      <button class="btn btn-primary" id="insertBtn">In Antwort einfügen</button>
     </div>
 
   </div>
 </div>
 
-<!-- ═══ Tab: Neue Mail ════════════════════════════════════════════════════════ -->
-<div class="tab-panel" id="tab-compose">
+<!-- Tab: Neue Mail -->
+<div class="view" id="tab-compose" hidden>
   <div class="content">
 
     <div>
-      <div class="label">Stil</div>
-      <div class="style-grid" id="styleGridCompose">
-        <button class="style-btn active" data-style="formal">Formal</button>
-        <button class="style-btn" data-style="freundlich">Freundlich</button>
-        <button class="style-btn" data-style="kurz">Kurz</button>
+      <div class="field-label">Ton</div>
+      <div class="segmented" data-style-group="compose">
+        <button class="active" data-style="formal">Formal</button>
+        <button data-style="freundlich">Freundlich</button>
+        <button data-style="kurz">Kurz</button>
       </div>
     </div>
 
-    <div class="mic-area">
-      <button class="mic-btn" id="micBtnCompose">🎙️</button>
-      <span class="mic-label" id="micLabelCompose">Klicken zum Aufnehmen</span>
+    <div class="mic-hero">
+      <button class="mic-big" id="micBtnCompose" title="Diktieren" aria-label="Diktieren">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v4"/></svg>
+      </button>
+      <span class="mic-caption" id="micLabelCompose">Tippen und lossprechen</span>
     </div>
 
-    <div>
-      <div class="label">Transkript</div>
-      <textarea id="transcript" placeholder="Gesprochener Text erscheint hier – oder direkt eintippen."></textarea>
-    </div>
+    <div class="divider">oder eintippen</div>
 
-    <button class="main-btn" id="generateBtn" disabled>E-Mail formulieren</button>
+    <textarea id="transcript" placeholder="Stichpunkte oder grober Text…"></textarea>
 
-    <div class="result-section" id="resultSection2">
-      <div class="label">Formulierter Text</div>
+    <button class="btn btn-primary" id="generateBtn" disabled>E-Mail formulieren</button>
+
+    <div class="result-card" id="resultSection2" hidden>
+      <div class="result-head">
+        <span class="result-title">Vorschlag</span>
+        <div class="result-tools">
+          <button class="icon-btn sm" id="regenerateBtn2" title="Neu formulieren" aria-label="Neu formulieren">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>
+          </button>
+          <button class="icon-btn sm" id="copyBtn2" title="Kopieren" aria-label="Kopieren">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+          </button>
+        </div>
+      </div>
       <textarea id="resultBox2"></textarea>
-      <div class="action-row">
-        <button class="action-btn" id="regenerateBtn2">↺ Neu</button>
-        <button class="action-btn primary" id="insertBtn2">In E-Mail einfügen</button>
-      </div>
+      <button class="btn btn-primary" id="insertBtn2">In E-Mail einfügen</button>
     </div>
 
   </div>
 </div>
 
-<div class="status-bar">
+<div class="status-bar" id="statusBar">
   <div class="dot" id="statusDot"></div>
-  <span id="statusText">Wird geladen...</span>
+  <span id="statusText">Wird geladen…</span>
 </div>
 
 <script>
@@ -468,155 +397,171 @@ let mailData     = { from: '', subject: '', body: '' };
 let styleReply   = 'formal';
 let styleCompose = 'formal';
 let isReadMode   = false;
+let activeTab    = 'reply';
 
 function setStatus(type, msg) {
   $('statusDot').className = 'dot' + (type ? ' ' + type : '');
+  $('statusBar').className = 'status-bar' + (type === 'error' ? ' error' : '');
   $('statusText').textContent = msg;
+}
+
+// ── Views ─────────────────────────────────────────────────────────────────────
+
+function showTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll('#tabBar button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  $('tab-reply').hidden   = tab !== 'reply';
+  $('tab-compose').hidden = tab !== 'compose';
+}
+document.querySelectorAll('#tabBar button').forEach(btn => btn.onclick = () => showTab(btn.dataset.tab));
+
+function showSettings(open) {
+  $('settingsView').hidden = !open;
+  $('tabBar').hidden       = open || isReadMode;
+  $('tab-reply').hidden    = open || activeTab !== 'reply';
+  $('tab-compose').hidden  = open || activeTab !== 'compose';
 }
 
 // ── Settings ─────────────────────────────────────────────────────────────────
 
 function loadSettings() {
-  $('userNameInput').value  = localStorage.getItem('vm_user_name') || '';
-  $('customPrompt').value   = localStorage.getItem('vm_custom_prompt') || '';
+  $('userNameInput').value = localStorage.getItem('vm_user_name') || '';
+  $('customPrompt').value  = localStorage.getItem('vm_custom_prompt') || '';
 }
-$('settingsToggle').onclick = () => {
-  loadSettings();
-  const open = $('settingsPanel').classList.toggle('visible');
-  $('tabBar').style.display        = open ? 'none' : '';
-  document.querySelectorAll('.tab-panel.active').forEach(p => p.style.display = open ? 'none' : '');
-};
-$('closeSettings').onclick = () => {
-  $('settingsPanel').classList.remove('visible');
-  $('tabBar').style.display = '';
-  document.querySelectorAll('.tab-panel.active').forEach(p => p.style.display = '');
-};
-$('saveSettings').onclick = () => {
+$('settingsToggle').onclick = () => { loadSettings(); showSettings($('settingsView').hidden); };
+$('closeSettings').onclick  = () => showSettings(false);
+$('saveSettings').onclick   = () => {
   localStorage.setItem('vm_user_name',     $('userNameInput').value.trim());
   localStorage.setItem('vm_custom_prompt', $('customPrompt').value.trim());
-  $('closeSettings').click();
+  showSettings(false);
   setStatus('ok', 'Gespeichert');
 };
 
-// ── Tabs ──────────────────────────────────────────────────────────────────────
-
-document.querySelectorAll('.tab-btn').forEach(btn => {
-  btn.onclick = () => {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-    btn.classList.add('active');
-    $('tab-' + btn.dataset.tab).classList.add('active');
-  };
-});
-
 // ── Style buttons ─────────────────────────────────────────────────────────────
 
-document.querySelectorAll('#styleGridReply .style-btn').forEach(btn => {
-  btn.onclick = () => {
-    document.querySelectorAll('#styleGridReply .style-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    styleReply = btn.dataset.style;
-  };
-});
-document.querySelectorAll('#styleGridCompose .style-btn').forEach(btn => {
-  btn.onclick = () => {
-    document.querySelectorAll('#styleGridCompose .style-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    styleCompose = btn.dataset.style;
-  };
+document.querySelectorAll('[data-style-group]').forEach(group => {
+  group.querySelectorAll('button').forEach(btn => {
+    btn.onclick = () => {
+      group.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      if (group.dataset.styleGroup === 'reply') styleReply = btn.dataset.style;
+      else styleCompose = btn.dataset.style;
+    };
+  });
 });
 
 // ── Mail einlesen ─────────────────────────────────────────────────────────────
 
-function readCurrentMail() {
-  if (typeof Office === 'undefined' || !Office.context?.mailbox?.item) {
-    $('mailEmpty').textContent = 'Keine Mail geöffnet (Testmodus)';
-    setStatus('warn', 'Testmodus');
-    return;
-  }
-  $('reloadMailBtn').disabled = true;
-  setStatus('warn', 'Mail wird eingelesen...');
-  const item    = Office.context.mailbox.item;
-  const from    = item.from?.displayName || item.from?.emailAddress || '';
-  const subject = item.subject || '(kein Betreff)';
-
-  item.body.getAsync(Office.CoercionType.Text, result => {
-    $('reloadMailBtn').disabled = false;
-    if (result.status === Office.AsyncResultStatus.Failed) {
-      setStatus('error', 'Fehler: ' + result.error.message);
-      $('mailEmpty').textContent = 'Fehler beim Einlesen der Mail.';
-      return;
-    }
-    const body = result.value.trim();
-    if (!body && !from) {
-      $('mailEmpty').textContent = 'Keine Mail geöffnet oder Mail ist leer.';
-      $('mailEmpty').style.display  = 'block';
-      $('mailLoaded').style.display = 'none';
-      setStatus('warn', 'Keine Mail gefunden');
-      return;
-    }
-    mailData = { from, subject, body: body.slice(0, 3000) };
-    $('mailFrom').textContent        = from || '(unbekannt)';
-    $('mailSubject').textContent     = subject;
-    $('mailBodyPreview').textContent = mailData.body;
-    $('mailEmpty').style.display     = 'none';
-    $('mailLoaded').style.display    = 'block';
-    $('suggestBtn').disabled         = false;
-    setStatus('ok', 'Bereit');
+// In compose mode, properties like subject are objects with getAsync; in read mode plain values.
+function officeValue(prop) {
+  return new Promise(resolve => {
+    if (prop && typeof prop.getAsync === 'function') {
+      prop.getAsync(r => resolve(r.status === Office.AsyncResultStatus.Succeeded ? r.value : null));
+    } else resolve(prop);
   });
 }
+
+function bodyText(item) {
+  return new Promise((resolve, reject) => {
+    item.body.getAsync(Office.CoercionType.Text, r =>
+      r.status === Office.AsyncResultStatus.Succeeded ? resolve(r.value || '') : reject(r.error));
+  });
+}
+
+function composeType(item) {
+  return new Promise(resolve => {
+    if (typeof item.getComposeTypeAsync !== 'function') return resolve(item.conversationId ? 'reply' : 'newMail');
+    item.getComposeTypeAsync(r => resolve(r.status === Office.AsyncResultStatus.Succeeded ? r.value.composeType : 'reply'));
+  });
+}
+
+// When replying, the original sender only exists in the quoted header ("Von: Name <mail>").
+function senderFromQuote(body) {
+  const m = body.match(/(?:^|\n)\s*(?:Von|From):\s*(.+?)\s*(?:<[^>]*>|\[mailto:[^\]]*\]|\r?\n|Gesendet:|Sent:|$)/);
+  return m ? m[1].replace(/["']/g, '').trim() : '';
+}
+
+function initials(name) {
+  const parts = name.replace(/[^\p{L}\s]/gu, '').trim().split(/\s+/).filter(Boolean);
+  return (parts.length ? parts[0][0] + (parts.length > 1 ? parts[parts.length - 1][0] : '') : '?').toUpperCase();
+}
+
+function showNoMail(msg) {
+  $('mailEmpty').textContent = msg;
+  $('mailEmpty').hidden  = false;
+  $('mailLoaded').hidden = true;
+  $('suggestBtn').disabled = true;
+}
+
+async function readCurrentMail() {
+  const item = typeof Office !== 'undefined' ? Office.context?.mailbox?.item : null;
+  if (!item) { showNoMail('Keine Mail geöffnet (Testmodus)'); setStatus('warn', 'Testmodus'); return; }
+
+  $('reloadMailBtn').disabled = true;
+  setStatus('warn', 'Mail wird eingelesen…');
+  try {
+    const [subject, body] = await Promise.all([officeValue(item.subject), bodyText(item)]);
+    const from = isReadMode
+      ? (item.from?.displayName || item.from?.emailAddress || '')
+      : senderFromQuote(body);
+    const text = body.trim();
+    if (!text) { showNoMail('Keine Mail zum Antworten gefunden.'); setStatus('', 'Bereit'); return; }
+
+    mailData = { from, subject: subject || '(kein Betreff)', body: text.slice(0, 6000) };
+    $('mailFrom').textContent    = from || 'Unbekannter Absender';
+    $('mailSubject').textContent = mailData.subject;
+    $('mailAvatar').textContent  = initials(from);
+    $('mailPreview').textContent = text.slice(0, 3000);
+    $('mailEmpty').hidden  = true;
+    $('mailLoaded').hidden = false;
+    $('suggestBtn').disabled = false;
+    setStatus('ok', 'Bereit');
+  } catch (e) {
+    showNoMail('Mail konnte nicht eingelesen werden.');
+    setStatus('error', 'Fehler: ' + (e?.message || e));
+  } finally {
+    $('reloadMailBtn').disabled = false;
+  }
+}
 $('reloadMailBtn').onclick = readCurrentMail;
+$('mailPreview').onclick   = () => $('mailPreview').classList.toggle('expanded');
 
-// ── Mikrofon helper ───────────────────────────────────────────────────────────
+// ── Mikrofon ──────────────────────────────────────────────────────────────────
 
-function startRecording(micBtn, micLabel, onTranscript) {
+function startRecording(micBtn, onTranscript, onIdle) {
   const url = 'https://willowy-empanada-20d9ee.netlify.app/recorder.html';
-  micBtn.classList.add('recording'); micBtn.textContent = '⏳';
-  micLabel.textContent = 'Aufnahme läuft...';
-  setStatus('warn', 'Sprich im Popup-Fenster...');
+  micBtn.classList.add('recording');
+  setStatus('warn', 'Sprich im Aufnahme-Fenster…');
+  const done = () => { micBtn.classList.remove('recording'); onIdle?.(); };
   Office.context.ui.displayDialogAsync(url, { height: 35, width: 25 }, res => {
     if (res.status === Office.AsyncResultStatus.Failed) {
-      setStatus('error', 'Fehler: ' + res.error.message);
-      resetMic(micBtn, micLabel); return;
+      setStatus('error', 'Fehler: ' + res.error.message); done(); return;
     }
     const dialog = res.value;
     dialog.addEventHandler(Office.EventType.DialogMessageReceived, msg => {
-      dialog.close(); resetMic(micBtn, micLabel);
+      dialog.close(); done();
       try {
         const data = JSON.parse(msg.message);
         if (data.type === 'transcript' && data.text) onTranscript(data.text);
-      } catch(e) { setStatus('error', 'Fehler beim Empfangen'); }
+      } catch (e) { setStatus('error', 'Fehler beim Empfangen'); }
     });
-    dialog.addEventHandler(Office.EventType.DialogEventReceived, () => {
-      resetMic(micBtn, micLabel); setStatus('', 'Bereit');
-    });
+    dialog.addEventHandler(Office.EventType.DialogEventReceived, () => { done(); setStatus('', 'Bereit'); });
   });
 }
 
-function resetMic(btn, label) {
-  btn.classList.remove('recording'); btn.textContent = '🎙️';
-}
+$('micBtnHints').onclick = () => startRecording($('micBtnHints'), text => {
+  $('hintsBox').value = ($('hintsBox').value ? $('hintsBox').value + ' ' : '') + text;
+  setStatus('ok', 'Aufgenommen');
+});
 
-// Hints mic (reply tab)
-$('micBtnHints').onclick = () => startRecording(
-  $('micBtnHints'), $('micLabelHints'),
-  text => {
-    $('hintsBox').value = ($('hintsBox').value ? $('hintsBox').value + ' ' : '') + text;
-    setStatus('ok', 'Hinweis aufgenommen');
-  }
-);
-
-// Compose mic
-$('micBtnCompose').onclick = () => startRecording(
-  $('micBtnCompose'), $('micLabelCompose'),
-  text => {
+$('micBtnCompose').onclick = () => {
+  $('micLabelCompose').textContent = 'Aufnahme läuft…';
+  startRecording($('micBtnCompose'), text => {
     $('transcript').value = text;
     updateComposeBtn();
     setStatus('ok', 'Transkript fertig');
-  }
-);
-
-// ── Compose tab: enable button ────────────────────────────────────────────────
+  }, () => { $('micLabelCompose').textContent = 'Tippen und lossprechen'; });
+};
 
 function updateComposeBtn() { $('generateBtn').disabled = !$('transcript').value.trim(); }
 $('transcript').oninput = updateComposeBtn;
@@ -656,18 +601,20 @@ async function fetchGPT(payload) {
   return data.text || '';
 }
 
-// ── Insert into mail ──────────────────────────────────────────────────────────
+// ── Insert / copy ─────────────────────────────────────────────────────────────
+
+function escapeHtml(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
 
 function textToHtml(text) {
   return text.trim().split(/\n\n+/).map(p =>
-    '<p>' + p.replace(/\n/g, '<br>') + '</p>'
-  ).join('');
+    '<p>' + escapeHtml(p).replace(/\n/g, '<br>') + '</p>'
+  ).join('') + '<p></p>';
 }
 
 function copyToClipboard(text) {
-  if (navigator.clipboard?.writeText) {
-    return navigator.clipboard.writeText(text);
-  }
+  if (navigator.clipboard?.writeText) return navigator.clipboard.writeText(text);
   // Fallback for webviews where the Clipboard API is unavailable.
   const ta = document.createElement('textarea');
   ta.value = text;
@@ -680,102 +627,89 @@ function copyToClipboard(text) {
   return Promise.resolve();
 }
 
+function copyText(text, okMsg = 'In Zwischenablage kopiert') {
+  copyToClipboard(text).then(() => setStatus('ok', okMsg), () => setStatus('error', 'Kopieren fehlgeschlagen'));
+}
+
 function insertIntoMail(text) {
   const item = typeof Office !== 'undefined' ? Office.context?.mailbox?.item : null;
-  if (!item) {
-    copyToClipboard(text).then(() => setStatus('ok', 'In Zwischenablage kopiert'));
-    return;
-  }
+  if (!item) return copyText(text);
   if (isReadMode) {
-    // displayReplyForm is unsupported on Outlook Mobile (confirmed: it's listed
-    // as an unsupported Message Read API there) — it silently does nothing.
+    // displayReplyForm is unsupported on Outlook Mobile — it silently does nothing.
     // Copying is the only reliable option: user taps Reply themselves and pastes.
-    copyToClipboard(text).then(
-      () => setStatus('ok', 'Kopiert – jetzt in Outlook auf "Antworten" tippen und einfügen'),
-      () => setStatus('error', 'Kopieren fehlgeschlagen')
-    );
-    return;
+    return copyText(text, 'Kopiert – jetzt „Antworten“ tippen und einfügen');
   }
-  const html = textToHtml(text);
-  item.body.setAsync(html, { coercionType: Office.CoercionType.Html }, r => {
+  // prepend keeps the quoted original mail and the signature intact
+  item.body.prependAsync(textToHtml(text), { coercionType: Office.CoercionType.Html }, r => {
     setStatus(r.status === Office.AsyncResultStatus.Succeeded ? 'ok' : 'error',
       r.status === Office.AsyncResultStatus.Succeeded ? 'Eingefügt' : r.error.message);
   });
 }
 
-// ── Run suggest (reply tab) ───────────────────────────────────────────────────
+// ── Generate ──────────────────────────────────────────────────────────────────
 
-async function runSuggest() {
-  $('suggestBtn').disabled = true;
-  $('suggestBtn').innerHTML = '<div class="spinner"></div> Antwort wird formuliert...';
-  $('resultSection1').classList.remove('visible');
-  setStatus('warn', 'Formuliert...');
+async function runGeneration({ btn, label, busyLabel, section, box, call }) {
+  btn.disabled = true;
+  btn.innerHTML = `<div class="spinner"></div> ${busyLabel}`;
+  setStatus('warn', busyLabel);
   try {
-    const result = await callOpenAIReply();
+    const result = await call();
     if (result) {
-      $('resultBox').value = result;
-      $('resultSection1').classList.add('visible');
-      insertIntoMail(result);
+      $(box).value = result;
+      $(section).hidden = false;
+      $(section).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      setStatus('ok', 'Vorschlag fertig');
     }
-  } catch(e) {
+  } catch (e) {
     setStatus('error', e.message);
   } finally {
-    $('suggestBtn').disabled = false;
-    $('suggestBtn').textContent = 'Antwort vorschlagen';
+    btn.textContent = label;
+    btn.disabled = false;
   }
 }
 
-$('suggestBtn').onclick   = runSuggest;
-$('regenerateBtn').onclick = runSuggest;
-$('insertBtn').onclick    = () => insertIntoMail($('resultBox').value.trim());
-
-// ── Run generate (compose tab) ────────────────────────────────────────────────
-
-async function runGenerate() {
+const runSuggest = () => runGeneration({
+  btn: $('suggestBtn'), label: 'Antwort vorschlagen', busyLabel: 'Formuliert…',
+  section: 'resultSection1', box: 'resultBox', call: callOpenAIReply
+});
+const runGenerate = () => {
   if (!$('transcript').value.trim()) return;
-  $('generateBtn').disabled = true;
-  $('generateBtn').innerHTML = '<div class="spinner"></div> Formuliert...';
-  $('resultSection2').classList.remove('visible');
-  setStatus('warn', 'Formuliert...');
-  try {
-    const result = await callOpenAICompose();
-    if (result) {
-      $('resultBox2').value = result;
-      $('resultSection2').classList.add('visible');
-      insertIntoMail(result);
-    }
-  } catch(e) {
-    setStatus('error', e.message);
-  } finally {
-    $('generateBtn').disabled = false;
-    $('generateBtn').textContent = 'E-Mail formulieren';
-    updateComposeBtn();
-  }
-}
+  return runGeneration({
+    btn: $('generateBtn'), label: 'E-Mail formulieren', busyLabel: 'Formuliert…',
+    section: 'resultSection2', box: 'resultBox2', call: callOpenAICompose
+  }).then(updateComposeBtn);
+};
+
+$('suggestBtn').onclick     = runSuggest;
+$('regenerateBtn').onclick  = runSuggest;
+$('copyBtn').onclick        = () => copyText($('resultBox').value.trim());
+$('insertBtn').onclick      = () => insertIntoMail($('resultBox').value.trim());
 
 $('generateBtn').onclick    = runGenerate;
 $('regenerateBtn2').onclick = runGenerate;
+$('copyBtn2').onclick       = () => copyText($('resultBox2').value.trim());
 $('insertBtn2').onclick     = () => insertIntoMail($('resultBox2').value.trim());
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 
-function applyReadModeUi() {
-  if (!isReadMode) return;
-  // In read mode there's no draft to compose into — only the reply-suggestion flow applies.
-  document.querySelector('.tab-btn[data-tab="compose"]').style.display = 'none';
-  $('insertBtn').textContent = '📋 Kopieren';
-}
-
 if (typeof Office !== 'undefined') {
-  Office.onReady(() => {
-    isReadMode = typeof Office.context?.mailbox?.item?.displayReplyForm === 'function';
-    applyReadModeUi();
+  Office.onReady(async () => {
+    const item = Office.context?.mailbox?.item;
+    isReadMode = typeof item?.displayReplyForm === 'function';
     loadSettings();
+    if (isReadMode) {
+      // No draft to write into — only the reply flow applies; inserting means copying.
+      $('tabBar').hidden = true;
+      $('insertBtn').textContent = 'Kopieren';
+      $('copyBtn').hidden = true;
+    } else if (item && await composeType(item) === 'newMail') {
+      showTab('compose');
+    }
     readCurrentMail();
   });
 } else {
   loadSettings();
-  $('mailEmpty').textContent = 'Keine Mail geöffnet (Testmodus)';
+  showNoMail('Keine Mail geöffnet (Testmodus)');
   setStatus('', 'Testmodus');
 }
 </script>
